@@ -7,49 +7,68 @@
 using namespace std;
 using namespace cv;
 
-int main(int argc, char** argv)
-{
+int train(int argc, char** argv) {
+    cout << "Offline Training" << endl;
     ORB orb;
-    string inFile = "";
     string outFile = "";
-    cout << "Offline Training for Augmented Reality application" << endl;
-    cout << "Compiled with OpenCV Version:"CV_VERSION << endl;
+    typedef vector<KeyPoint> KeyPoints;
 
-    if (argc >= 3) {
-        inFile = argv[1];
+    if (argc >= 4) {
         outFile = argv[argc-1];
     } else {
-        cout << "Usage: ./train inFile1 inFile2 inFile3 .. outFile" << endl;
+        cout << "Usage: ./app train inFile1 inFile2 inFile3 .. outFile" << endl;
         return 1;
     }
 
-    // Open xml file for writing
-    FileStorage fs(outFile, FileStorage::WRITE);
+    int nimages = argc-3;
+    Mat images[nimages];
+    KeyPoints keypoints[nimages];
+    Mat descriptors[nimages];
 
-    fs << "images" << "[";
-    for (int i = 0; i < argc - 2; i++) {
-        inFile = argv[i+1];
-
+    for (int i = 0; i < nimages; i++) {
         // Load image
-        Mat image;
-        image = imread(inFile, IMREAD_COLOR);
-        if (!image.data) {
-            cout << "Could not open or find image" << endl;
+        string inFile = argv[2+i];
+        images[i] = imread(inFile, IMREAD_COLOR);
+        if (!images[i].data) {
+            cout << "Could not open or find image:" << inFile << endl;
             return -1;
         }
-        // Find features
-        // Compute descriptors
-        std::vector<KeyPoint> keypoints;
-        Mat descriptors;
-        orb(image, Mat(), keypoints, descriptors);
-        // Store in xml
+
+        // Find features and compute descriptors
+        orb(images[i],Mat(),keypoints[i], descriptors[i]);
+    }
+
+    // Write to file
+    FileStorage fs(outFile, FileStorage::WRITE);
+    fs << "images" << "[";
+    for (int i = 0; i < nimages; i++) {
         fs << "{";
-        fs << "imageName" << inFile;
-        fs << "descriptors" << descriptors;
+        fs << "descriptors" << descriptors[i];
         fs << "}";
     }
     fs << "]";
     fs.release();
+    return 0;
+}
+
+int main(int argc, char** argv)
+{
+    cout << "Augmented Reality application" << endl;
+    cout << "Compiled with OpenCV Version:"CV_VERSION << endl;
+
+    if (argc < 2) {
+        cout << "Usage: ./app command" << endl;
+        return 1;
+    }
+
+    string command = argv[1];
+    if (command == "train") {
+        return train(argc,argv);
+    } else {
+        cout << "Available commands: train" << endl;
+        return 1;
+    }
+
     return 0;
 }
 
