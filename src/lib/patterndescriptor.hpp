@@ -10,6 +10,7 @@ class PatternDescriptor
 {
 public:
     PatternDescriptor();
+    PatternDescriptor(vector<KeyPoint> &keypoints, Mat &descriptors);
     PatternDescriptor(Mat &image);
 
     void write(FileStorage &fs) const;

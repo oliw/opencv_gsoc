@@ -20,6 +20,8 @@ PatternDescriptor::PatternDescriptor(Mat &image)
     orb(image, Mat(), keypoints, descriptors);
 }
 
+PatternDescriptor::PatternDescriptor(vector<KeyPoint> &keypoints, Mat &descriptors) : keypoints(keypoints),descriptors(descriptors){}
+
 void PatternDescriptor::write(FileStorage &fs) const {
     fs << "{" << "keypoints" << keypoints << "descriptors" << descriptors << "}";
 }
