@@ -21,7 +21,7 @@
 class ARPipeline
 {
 public:
-  ARPipeline(const cv::Mat& patternImage, const CameraCalibration& calibration);
+  ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCalibration& calibration);
 
   bool processFrame(const cv::Mat& inputFrame);
 
@@ -32,9 +32,8 @@ private:
 
 private:
   CameraCalibration   m_calibration;
-  Pattern             m_pattern;
+  std::vector<Pattern>m_patterns;
   PatternTrackingInfo m_patternInfo;
-  //PatternDetector     m_patternDetector;
 };
 
 #endif

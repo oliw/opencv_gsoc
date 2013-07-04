@@ -13,11 +13,11 @@
 // File includes:
 #include "ARPipeline.hpp"
 
-ARPipeline::ARPipeline(const cv::Mat& patternImage, const CameraCalibration& calibration)
+ARPipeline::ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCalibration& calibration)
   : m_calibration(calibration)
 {
-  m_patternDetector.buildPatternFromImage(patternImage, m_pattern);
-  m_patternDetector.train(m_pattern);
+  m_patternDetector.buildPatternsFromImages(patternImages, m_patterns);
+  m_patternDetector.train(m_patterns);
 }
 
 bool ARPipeline::processFrame(const cv::Mat& inputFrame)
@@ -25,6 +25,7 @@ bool ARPipeline::processFrame(const cv::Mat& inputFrame)
   bool patternFound = m_patternDetector.findPattern(inputFrame, m_patternInfo);
   if (patternFound)
   {
+    Pattern m_pattern = m_patternDetector.getMatchedPattern();
     m_patternInfo.computePose(m_pattern, m_calibration);
   }
   return patternFound;

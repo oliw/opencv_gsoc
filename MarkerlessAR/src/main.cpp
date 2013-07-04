@@ -25,14 +25,14 @@
  * Processes a recorded video or live view from web-camera and allows you to adjust homography refinement and 
  * reprojection threshold in runtime.
  */
-void processVideo(const cv::Mat& patternImage, CameraCalibration& calibration, cv::VideoCapture& capture);
+void processVideo(const std::vector<cv::Mat>& patternImages, CameraCalibration& calibration, cv::VideoCapture& capture);
 
 /**
  * Processes single image. The processing goes in a loop.
  * It allows you to control the detection process by adjusting homography refinement switch and 
  * reprojection threshold in runtime.
  */
-void processSingleImage(const cv::Mat& patternImage, CameraCalibration& calibration, const cv::Mat& image);
+void processSingleImage(const std::vector<cv::Mat>& patternImages, CameraCalibration& calibration, const cv::Mat& image);
 
 /**
  * Performs full detection routine on camera frame and draws the scene using drawing context.
@@ -49,37 +49,43 @@ int main(int argc, const char * argv[])
     if (argc < 2)
     {
         std::cout << "Input image not specified" << std::endl;
-        std::cout << "Usage: markerless_ar_demo <pattern image> [filepath to recorded video or image]" << std::endl;
+        std::cout << "Usage: markerless_ar_demo <pattern image>+ [-vid filepath to recorded video or image]" << std::endl;
         return 1;
     }
 
-    // Try to read the pattern:
-    cv::Mat patternImage = cv::imread(argv[1]);
-    if (patternImage.empty())
-    {
-        std::cout << "Input image cannot be read" << std::endl;
-        return 2;
+    int arg_i = 1;
+    std::vector<cv::Mat> patternImages;
+    while (arg_i != argc && argv[arg_i] != "-vid") {
+        // Try to read the patterns:
+        cv::Mat patternImage = cv::imread(argv[arg_i]);
+        if (patternImage.empty())
+        {
+            std::cout << "Input image cannot be read" << std::endl;
+            return 2;
+        }
+        patternImages.push_back(patternImage);
+        arg_i++;
     }
 
-    if (argc == 2)
+    if (arg_i == argc)
     {
         cv::VideoCapture cap(0);
-        processVideo(patternImage, calibration, cap);
+        processVideo(patternImages, calibration, cap);
     }
-    else if (argc == 3)
+    else if (argv[arg_i] == "-vid")
     {
-        std::string input = argv[2];
+        std::string input = argv[arg_i+1];
         cv::Mat testImage = cv::imread(input);
         if (!testImage.empty())
         {
-            processSingleImage(patternImage, calibration, testImage);
+            processSingleImage(patternImages, calibration, testImage);
         }
         else 
         {
             cv::VideoCapture cap;
             if (cap.open(input))
             {
-                processVideo(patternImage, calibration, cap);
+                processVideo(patternImages, calibration, cap);
             }
         }
     }
@@ -92,7 +98,7 @@ int main(int argc, const char * argv[])
     return 0;
 }
 
-void processVideo(const cv::Mat& patternImage, CameraCalibration& calibration, cv::VideoCapture& capture)
+void processVideo(const std::vector<cv::Mat>& patternImages, CameraCalibration& calibration, cv::VideoCapture& capture)
 {
     // Grab first frame to get the frame dimensions
     cv::Mat currentFrame;  
@@ -107,7 +113,7 @@ void processVideo(const cv::Mat& patternImage, CameraCalibration& calibration, c
 
     cv::Size frameSize(currentFrame.cols, currentFrame.rows);
 
-    ARPipeline pipeline(patternImage, calibration);
+    ARPipeline pipeline(patternImages, calibration);
     ARDrawingContext drawingCtx("Markerless AR", frameSize, calibration);
 
     bool shouldQuit = false;
@@ -124,10 +130,10 @@ void processVideo(const cv::Mat& patternImage, CameraCalibration& calibration, c
     } while (!shouldQuit);
 }
 
-void processSingleImage(const cv::Mat& patternImage, CameraCalibration& calibration, const cv::Mat& image)
+void processSingleImage(const std::vector<cv::Mat>& patternImages, CameraCalibration& calibration, const cv::Mat& image)
 {
     cv::Size frameSize(image.cols, image.rows);
-    ARPipeline pipeline(patternImage, calibration);
+    ARPipeline pipeline(patternImages, calibration);
     ARDrawingContext drawingCtx("Markerless AR", frameSize, calibration);
 
     bool shouldQuit = false;

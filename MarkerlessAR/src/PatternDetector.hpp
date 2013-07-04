@@ -36,19 +36,21 @@ public:
     /**
     * 
     */
-    void train(const Pattern& pattern);
+    void train(const std::vector<Pattern>& pattern);
 
     /**
     * Initialize Pattern structure from the input image.
     * This function finds the feature points and extract descriptors for them.
     */
-    void buildPatternFromImage(const cv::Mat& image, Pattern& pattern) const;
+    void buildPatternsFromImages(const std::vector<cv::Mat>& images, std::vector<Pattern>& patterns) const;
 
     /**
     * Tries to find a @pattern object on given @image. 
     * The function returns true if succeeded and store the result (pattern 2d location, homography) in @info.
     */
     bool findPattern(const cv::Mat& image, PatternTrackingInfo& info);
+
+    Pattern getMatchedPattern() {return m_pattern;}
 
     bool enableRatioTest;
     bool enableHomographyRefinement;
@@ -88,6 +90,7 @@ private:
     cv::Mat                   m_roughHomography;
     cv::Mat                   m_refinedHomography;
 
+    std::vector<Pattern>             m_patterns;
     Pattern                          m_pattern;
     cv::Ptr<cv::FeatureDetector>     m_detector;
     cv::Ptr<cv::DescriptorExtractor> m_extractor;
