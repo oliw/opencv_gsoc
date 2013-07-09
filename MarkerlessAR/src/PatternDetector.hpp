@@ -29,7 +29,7 @@ public:
         (
         cv::Ptr<cv::FeatureDetector>     detector  = new cv::ORB(1000), 
         cv::Ptr<cv::DescriptorExtractor> extractor = new cv::ORB(1000),
-        cv::Ptr<cv::DescriptorMatcher>   matcher   = new cv::BFMatcher(cv::NORM_HAMMING, true),
+        cv::Ptr<cv::DescriptorMatcher>   matcher   = new cv::BFMatcher(cv::NORM_HAMMING, false),
         bool enableRatioTest                       = false
         );
 
