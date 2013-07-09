@@ -43,6 +43,8 @@ bool processFrame(const cv::Mat& cameraFrame, ARPipeline& pipeline, ARDrawingCon
 
 int main(int argc, const char * argv[])
 {
+    std::cout << "Compiled using OpenCV " << CV_VERSION << std::endl;
+
     // Change this calibration to yours:
     CameraCalibration calibration(1379.9397187316185f, 1403.6016242701958f, 313.61301773339352f, 200.39306393520991f);
     
