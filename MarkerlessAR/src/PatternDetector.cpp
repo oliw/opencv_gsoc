@@ -115,7 +115,7 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
 
     // Find training pattern with most matches
     int maxMatches = 0;
-    int bestPattern = -1;
+    int matchedPatternIdx = -1;
     std::vector<cv::DMatch> m_matches_i;
     for (int i = 0; i < m_patterns.size(); i++) {
         m_matches_i.clear();
@@ -136,7 +136,7 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
             m_roughHomography_i);
 
         if (homographyFoundinPattern && m_matches_i.size() > maxMatches) {
-            bestPattern = i;
+            matchedPatternIdx = i;
             maxMatches = m_matches_i.size();
             m_roughHomography = m_roughHomography_i;
             homographyFound = homographyFoundinPattern;
@@ -155,6 +155,8 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
 
     if (homographyFound)
     {
+        info.patternIdx = matchedPatternIdx;
+
 #if _DEBUG
         cv::showAndSave("Refined matches using RANSAC", getMatchesImage(image, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
 #endif
@@ -294,7 +296,7 @@ bool PatternDetector::refineMatchesWithHomography
     cv::Mat& homography
     )
 {
-    const int minNumberMatchesAllowed = 8;
+    const int minNumberMatchesAllowed = 25;
 
     if (matches.size() < minNumberMatchesAllowed)
         return false;

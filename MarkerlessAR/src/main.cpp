@@ -1,9 +1,14 @@
 /*****************************************************************************
 *   Markerless AR desktop application.
 ******************************************************************************
-*   by Khvedchenia Ievgen, 5th Dec 2012
-*   http://computer-vision-talks.com
+*
+*   Oliver Wilkie
+*   Google Summer of Code 2013
+*
 ******************************************************************************
+*   Original Code by Khvedchenia Ievgen, 5th Dec 2012
+*   http://computer-vision-talks.com
+*
 *   Ch3 of the book "Mastering OpenCV with Practical Computer Vision Projects"
 *   Copyright Packt Publishing 2012.
 *   http://www.packtpub.com/cool-projects-with-opencv/book
