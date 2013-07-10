@@ -25,8 +25,7 @@ bool ARPipeline::processFrame(const cv::Mat& inputFrame)
   bool patternFound = m_patternDetector.findPattern(inputFrame, m_patternInfo);
   if (patternFound)
   {
-    Pattern m_pattern = m_patternDetector.getMatchedPattern();
-    m_patternInfo.computePose(m_pattern, m_calibration);
+    m_patternInfo.computePose(m_patterns[m_patternInfo.patternIdx], m_calibration);
   }
   return patternFound;
 }
