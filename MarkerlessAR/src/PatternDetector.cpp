@@ -116,34 +116,31 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
     // Find training pattern with most matches
     int maxMatches = 0;
     int matchedPatternIdx = -1;
-    std::vector<cv::DMatch> m_matches_i;
-    for (int i = 0; i < m_patterns.size(); i++) {
-        m_matches_i.clear();
-        // Extract matches specific to current pattern
-        for (int m = 0; m < m_matches.size(); m++) {
-            if(m_matches[m].imgIdx == i) {
-                m_matches_i.push_back(m_matches[m]);
-            }
-        }
 
-        // Find homography transformation and detect good matches
+    // Divide matches for each pattern
+    std::vector<std::vector<cv::DMatch> > m_matches_p(m_patterns.size());
+    for (int m = 0; m < m_matches.size(); m++) {
+        m_matches_p[m_matches[m].imgIdx].push_back(m_matches[m]);
+    }
+
+    for (int i = 0; i < m_patterns.size(); i++) {
         cv::Mat m_roughHomography_i;
+        // Estimate Homography for pattern and discard outlier matches
         bool homographyFoundinPattern = refineMatchesWithHomography(
             m_queryKeypoints,
             m_patterns[i].keypoints,
             homographyReprojectionThreshold,
-            m_matches_i,
+            m_matches_p[i],
             m_roughHomography_i);
 
-        if (homographyFoundinPattern && m_matches_i.size() > maxMatches) {
+        if (homographyFoundinPattern && m_matches_p[i].size() > maxMatches) {
             matchedPatternIdx = i;
-            maxMatches = m_matches_i.size();
+            maxMatches = m_matches_p[i].size();
             m_roughHomography = m_roughHomography_i;
             homographyFound = homographyFoundinPattern;
             m_pattern = m_patterns[i];
         }
     }
-
 
 #if _DEBUG
     cv::showAndSave("Raw matches", getMatchesImage(image, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
