@@ -27,8 +27,8 @@ public:
      */
     PatternDetector
         (
-        cv::Ptr<cv::FeatureDetector>     detector  = new cv::ORB(1000), 
-        cv::Ptr<cv::DescriptorExtractor> extractor = new cv::ORB(1000),
+        cv::Ptr<cv::FeatureDetector>     detector  = new cv::ORB(600),
+        cv::Ptr<cv::DescriptorExtractor> extractor = new cv::ORB(600),
         cv::Ptr<cv::DescriptorMatcher>   matcher   = new cv::BFMatcher(cv::NORM_HAMMING, false),
         bool enableRatioTest                       = false
         );
@@ -49,8 +49,6 @@ public:
     * The function returns true if succeeded and store the result (pattern 2d location, homography) in @info.
     */
     bool findPattern(const cv::Mat& image, PatternTrackingInfo& info);
-
-    Pattern getMatchedPattern() {return m_pattern;}
 
     bool enableRatioTest;
     bool enableHomographyRefinement;
