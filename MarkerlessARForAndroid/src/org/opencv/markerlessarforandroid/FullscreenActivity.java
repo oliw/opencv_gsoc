@@ -1,5 +1,12 @@
 package org.opencv.markerlessarforandroid;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
 import org.opencv.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;
@@ -7,7 +14,9 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 
 /**
@@ -16,7 +25,10 @@ import android.view.View;
  * 
  * @see SystemUiHider
  */
-public class FullscreenActivity extends Activity {
+public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
+	
+	private static final String  TAG = "Sample::FullScreenActivity::Activity";
+	
 	/**
 	 * Whether or not the system UI should be auto-hidden after
 	 * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -44,6 +56,25 @@ public class FullscreenActivity extends Activity {
 	 * The instance of the {@link SystemUiHider} for this activity.
 	 */
 	private SystemUiHider mSystemUiHider;
+	
+	private CameraBridgeViewBase mOpenCvCameraView;
+	
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i(TAG, "OpenCV loaded successfully");
+                    mOpenCvCameraView.enableView();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +83,7 @@ public class FullscreenActivity extends Activity {
 		setContentView(R.layout.activity_fullscreen);
 
 		final View controlsView = findViewById(R.id.fullscreen_content_controls);
-		final View contentView = findViewById(R.id.fullscreen_content);
+		final View contentView = findViewById(R.id.HelloOpenCvView);
 
 		// Set up an instance of SystemUiHider to control the system UI for
 		// this activity.
@@ -116,7 +147,36 @@ public class FullscreenActivity extends Activity {
 		// while interacting with the UI.
 		findViewById(R.id.dummy_button).setOnTouchListener(
 				mDelayHideTouchListener);
+		
+		
+		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.HelloOpenCvView);
+	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+	    mOpenCvCameraView.setCvCameraViewListener(this);
 	}
+	
+	@Override
+	public void onPause()
+	{
+	     super.onPause();
+	     if (mOpenCvCameraView != null)
+	         mOpenCvCameraView.disableView();
+	}
+	
+	@Override
+	public void onDestroy()
+	{
+	     super.onDestroy();
+	     if (mOpenCvCameraView != null)
+	         mOpenCvCameraView.disableView();
+	}
+	
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+        // Load the OpenCV library
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
+    }
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
@@ -158,5 +218,22 @@ public class FullscreenActivity extends Activity {
 	private void delayedHide(int delayMillis) {
 		mHideHandler.removeCallbacks(mHideRunnable);
 		mHideHandler.postDelayed(mHideRunnable, delayMillis);
+	}
+
+	@Override
+	public void onCameraViewStarted(int width, int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onCameraViewStopped() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		return inputFrame.rgba();
 	}
 }
