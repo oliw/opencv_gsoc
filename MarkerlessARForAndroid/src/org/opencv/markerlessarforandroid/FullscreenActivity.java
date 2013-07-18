@@ -11,6 +11,7 @@ import org.opencv.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -148,8 +149,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		findViewById(R.id.dummy_button).setOnTouchListener(
 				mDelayHideTouchListener);
 		
-		
-		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.HelloOpenCvView);
+		mOpenCvCameraView = (CameraBridgeViewBase) contentView;
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
 	}
@@ -212,7 +212,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	};
 
 	/**
-	 * Schedules a call to hide() in [delay] milliseconds, canceling any
+	 * Schedules a call to hide() in [delay] milliseconds, cancelling any
 	 * previously scheduled calls.
 	 */
 	private void delayedHide(int delayMillis) {
@@ -235,5 +235,11 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		return inputFrame.rgba();
+	}
+	
+	public void openSettings(View view) {
+	    // Do something in response to button
+		Intent intent = new Intent(this, SettingsActivity.class);
+		startActivity(intent);
 	}
 }
