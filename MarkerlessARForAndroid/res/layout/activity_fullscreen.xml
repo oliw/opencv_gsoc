@@ -11,7 +11,7 @@
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc.
     -->
-            <org.opencv.android.JavaCameraView
+            <org.opencv.markerlessarforandroid.CameraView
 	        android:layout_width="fill_parent"
 	        android:layout_height="fill_parent"
 	        android:visibility="gone"

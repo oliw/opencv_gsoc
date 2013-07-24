@@ -2,6 +2,7 @@ package org.opencv.markerlessarforandroid;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.NativeCameraView;
 import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -16,6 +17,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Camera;
+import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -42,7 +45,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	
 	private Mat[] images;
 	
-	private static final String  TAG = "Sample::FullScreenActivity::Activity";
+	private static final String  TAG = "MarkerlessAR::MainScreen::Activity";
 	
 	/**
 	 * Whether or not the system UI should be auto-hidden after
@@ -75,7 +78,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	/**
 	 * Handles interaction between Camera and OpenCV.
 	 */
-	private CameraBridgeViewBase mOpenCvCameraView;
+	private CameraView mOpenCvCameraView;
 	
 	/**
 	 * Dynamically load OpenCV library and additional required libraries
@@ -165,7 +168,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 			}
 		});
 	
-		mOpenCvCameraView = (CameraBridgeViewBase) contentView;
+		mOpenCvCameraView = (CameraView) contentView;
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
 	}
@@ -253,10 +256,10 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		if (arPipeline != 0) {
-			int result = processFrame(inputFrame.rgba().getNativeObjAddr(), arPipeline);
-			if (result != lastResult && result == 1) {
-				Log.i(TAG, "Tag Found");
-			}
+//			int result = processFrame(inputFrame.rgba().getNativeObjAddr(), arPipeline);
+//			if (result != lastResult && result == 1) {
+//				Log.i(TAG, "Tag Found");
+//			}
 		}
 		return inputFrame.rgba();
 	}
