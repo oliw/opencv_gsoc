@@ -15,7 +15,7 @@
 	        android:layout_width="fill_parent"
 	        android:layout_height="fill_parent"
 	        android:visibility="gone"
-	        android:id="@+id/HelloOpenCvView"
+	        android:id="@+id/OpenCVCameraView"
 	        opencv:show_fps="true"
 	        opencv:camera_id="any" />
 

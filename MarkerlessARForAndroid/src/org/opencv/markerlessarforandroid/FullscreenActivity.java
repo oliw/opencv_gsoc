@@ -2,16 +2,20 @@ package org.opencv.markerlessarforandroid;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +26,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Toast;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -30,6 +35,12 @@ import android.view.View;
  * @see SystemUiHider
  */
 public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
+	
+	private int lastResult = 0;
+	private long callibObject = 0;
+	private long arPipeline = 0;
+	
+	private Mat[] images;
 	
 	private static final String  TAG = "Sample::FullScreenActivity::Activity";
 	
@@ -61,8 +72,14 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	 */
 	private SystemUiHider mSystemUiHider;
 	
+	/**
+	 * Handles interaction between Camera and OpenCV.
+	 */
 	private CameraBridgeViewBase mOpenCvCameraView;
 	
+	/**
+	 * Dynamically load OpenCV library and additional required libraries
+	 */
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -70,6 +87,9 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
+                    // Load native library after(!) OpenCV initialization
+                    System.loadLibrary("ar-jni");
+                    initAR();
                     mOpenCvCameraView.enableView();
                 } break;
                 default:
@@ -79,14 +99,38 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
             }
         }
     };
-
+    
+    public native int processFrame(long currFrame, long pipelineAddress);
+    public native long initCameraCallibration(float fx, float fy, float cx, float cy);
+    public native void releaseCameraCallibration(long pointer);
+    public native long initARPipeline(long[] images, int imgCount, long callib);
+    public native void releaseARPipeline(long pointer);
+    
+    private void initAR() {
+        callibObject = initCameraCallibration(1379.9397187316185f, 1403.6016242701958f, 313.61301773339352f, 200.39306393520991f);
+    	// Load images from resources
+    	BitmapFactory.Options opts = new BitmapFactory.Options();
+    	opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+    	Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.raw.one, opts);
+    	// Convert to Mat
+    	Mat tmp = new Mat (bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
+    	Utils.bitmapToMat(bmp, tmp);
+    	// Add to array
+    	images = new Mat[1];
+    	images[0] = tmp;
+    	// Create pointer array
+    	long[] arr = new long[1];
+    	arr[0] = tmp.getNativeObjAddr();
+    	arPipeline = initARPipeline(arr, 1, callibObject);
+    }
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_fullscreen);
 
-		final View contentView = findViewById(R.id.HelloOpenCvView);
+		final View contentView = findViewById(R.id.OpenCVCameraView);
 
 		// Set up an instance of SystemUiHider to control the system UI for
 		// this activity.
@@ -120,7 +164,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 				}
 			}
 		});
-
 	
 		mOpenCvCameraView = (CameraBridgeViewBase) contentView;
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -141,20 +184,22 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	     super.onDestroy();
 	     if (mOpenCvCameraView != null)
 	         mOpenCvCameraView.disableView();
+	     if (arPipeline != 0)
+	    	 releaseARPipeline(arPipeline);
+	     if (callibObject != 0)
+	    	 releaseCameraCallibration(callibObject);
 	}
 	
     @Override
     public void onResume()
     {
         super.onResume();
-        // Load the OpenCV library
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
     }
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
-
 		// Trigger the initial hide() shortly after the activity has been
 		// created, to briefly hint to the user that UI controls
 		// are available.
@@ -163,7 +208,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 
 	/**
 	 * Touch listener to use for in-layout UI controls to delay hiding the
-	 * system UI. This is to prevent the jarring behavior of controls going away
+	 * system UI. This is to prevent the jarring behaviour of controls going away
 	 * while interacting with activity UI.
 	 */
 	View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
@@ -207,6 +252,12 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
+		if (arPipeline != 0) {
+			int result = processFrame(inputFrame.rgba().getNativeObjAddr(), arPipeline);
+			if (result != lastResult && result == 1) {
+				Log.i(TAG, "Tag Found");
+			}
+		}
 		return inputFrame.rgba();
 	}
 	
@@ -228,7 +279,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	    // Handle item selection
 	    switch (item.getItemId()) {
 	        case R.id.settings:
-	    	    // Do something in response to button
 	    		Intent intent = new Intent(this, SettingsActivity.class);
 	    		startActivity(intent);
 	    	    return true;
