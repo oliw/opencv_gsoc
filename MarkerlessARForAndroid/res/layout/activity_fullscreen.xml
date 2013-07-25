@@ -11,12 +11,33 @@
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc.
     -->
-            <org.opencv.markerlessarforandroid.CameraView
-	        android:layout_width="fill_parent"
-	        android:layout_height="fill_parent"
-	        android:visibility="gone"
-	        android:id="@+id/OpenCVCameraView"
-	        opencv:show_fps="true"
-	        opencv:camera_id="any" />
+
+    <org.opencv.markerlessarforandroid.CameraView
+        android:id="@+id/OpenCVCameraView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone"
+        opencv:camera_id="any"
+        opencv:show_fps="true" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@color/black_overlay"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            tools:ignore="UselessParent" >
+
+            <TextView
+                android:id="@+id/info_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </FrameLayout>
 
 </FrameLayout>

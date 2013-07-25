@@ -1,8 +1,6 @@
 package org.opencv.markerlessarforandroid;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.NativeCameraView;
 import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
@@ -17,8 +15,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.hardware.Camera;
-import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,7 +25,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.TextView;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -39,46 +35,20 @@ import android.widget.Toast;
  */
 public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
 	
-	private int lastResult = 0;
-	private long callibObject = 0;
-	private long arPipeline = 0;
-	
-	private Mat[] images;
-	
 	private static final String  TAG = "MarkerlessAR::MainScreen::Activity";
 	
-	/**
-	 * Whether or not the system UI should be auto-hidden after
-	 * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
-	 */
-	private static final boolean AUTO_HIDE = true;
-
-	/**
-	 * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
-	 * user interaction before hiding the system UI.
-	 */
-	private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
-
-	/**
-	 * If set, will toggle the system UI visibility upon interaction. Otherwise,
-	 * will show the system UI visibility upon interaction.
-	 */
-	private static final boolean TOGGLE_ON_CLICK = true;
-
-	/**
-	 * The flags to pass to {@link SystemUiHider#getInstance}.
-	 */
+	private NativeFrameProcessor processor;
+	private Mat frame;
+	private boolean patternDetected = false;
+	
+	private static final boolean AUTO_HIDE = true; 			/* Auto-Hide System UI */
+	private static final int AUTO_HIDE_DELAY_MILLIS = 3000; 
+	private static final boolean TOGGLE_ON_CLICK = true; 	/* Toggle System UI when pushed */
 	private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION;
-
-	/**
-	 * The instance of the {@link SystemUiHider} for this activity.
-	 */
 	private SystemUiHider mSystemUiHider;
 	
-	/**
-	 * Handles interaction between Camera and OpenCV.
-	 */
 	private CameraView mOpenCvCameraView;
+	private TextView messageBox;
 	
 	/**
 	 * Dynamically load OpenCV library and additional required libraries
@@ -90,7 +60,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    // Load native library after(!) OpenCV initialization
                     System.loadLibrary("ar-jni");
                     initAR();
                     mOpenCvCameraView.enableView();
@@ -110,8 +79,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     public native void releaseARPipeline(long pointer);
     
     private void initAR() {
-        callibObject = initCameraCallibration(1379.9397187316185f, 1403.6016242701958f, 313.61301773339352f, 200.39306393520991f);
-    	// Load images from resources
+    	// Load training images 
     	BitmapFactory.Options opts = new BitmapFactory.Options();
     	opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
     	Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.raw.one, opts);
@@ -119,12 +87,10 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     	Mat tmp = new Mat (bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
     	Utils.bitmapToMat(bmp, tmp);
     	// Add to array
-    	images = new Mat[1];
-    	images[0] = tmp;
-    	// Create pointer array
-    	long[] arr = new long[1];
-    	arr[0] = tmp.getNativeObjAddr();
-    	arPipeline = initARPipeline(arr, 1, callibObject);
+    	Mat[] trainingImages = new Mat[1];;
+    	trainingImages[0] = tmp;
+
+    	processor = new NativeFrameProcessor(trainingImages, 1379.9397187316185f, 1403.6016242701958f, 313.61301773339352f, 200.39306393520991f); // TODO Update for android
     }
     
 	@Override
@@ -142,10 +108,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		mSystemUiHider.setup();
 		mSystemUiHider
 				.setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener() {
-					// Cached values.
-					int mControlsHeight;
-					int mShortAnimTime;
-
 					@Override
 					@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
 					public void onVisibilityChange(boolean visible) {
@@ -171,6 +133,8 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		mOpenCvCameraView = (CameraView) contentView;
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
+	    
+	    messageBox = (TextView) findViewById(R.id.info_message);
 	}
 	
 	@Override
@@ -187,10 +151,8 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	     super.onDestroy();
 	     if (mOpenCvCameraView != null)
 	         mOpenCvCameraView.disableView();
-	     if (arPipeline != 0)
-	    	 releaseARPipeline(arPipeline);
-	     if (callibObject != 0)
-	    	 releaseCameraCallibration(callibObject);
+	     if (processor != null)
+	    	 processor.release();
 	}
 	
     @Override
@@ -243,26 +205,32 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 
 	@Override
 	public void onCameraViewStarted(int width, int height) {
-		// TODO Auto-generated method stub
+		frame = new Mat();
 		
 	}
 
 	@Override
 	public void onCameraViewStopped() {
-		// TODO Auto-generated method stub
-		
+		frame.release();
 	}
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		if (arPipeline != 0) {
-//			int result = processFrame(inputFrame.rgba().getNativeObjAddr(), arPipeline);
-//			if (result != lastResult && result == 1) {
-//				Log.i(TAG, "Tag Found");
-//			}
+		frame = inputFrame.rgba();
+		int result = 0;
+		if (processor != null) {
+			result = processor.process(frame);
 		}
+		if (!patternDetected && result == 1) {
+			msgBoxHandler.post(new MessageBoxUpdater("Found Pattern"));
+		} else if (patternDetected && result == 0) {
+			msgBoxHandler.post(new MessageBoxUpdater("Cannot find pattern"));
+		}
+		patternDetected = result == 1;
 		return inputFrame.rgba();
 	}
+	
+	Handler msgBoxHandler = new Handler();
 	
 	public void openSettings(View view) {
 	    // Do something in response to button
@@ -292,5 +260,20 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
+	}
+	
+	
+	private class MessageBoxUpdater implements Runnable {
+		
+		String text;
+		
+		public MessageBoxUpdater(String text) {
+			this.text = text;
+		}
+
+		@Override
+		public void run() {
+			messageBox.setText(text);
+		}
 	}
 }
