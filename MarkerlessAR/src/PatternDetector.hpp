@@ -15,6 +15,7 @@
 ////////////////////////////////////////////////////////////////////
 // File includes:
 #include "Pattern.hpp"
+#include "boost/thread.hpp"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/nonfree/features2d.hpp>
@@ -29,7 +30,6 @@ public:
         (
         cv::Ptr<cv::FeatureDetector>     detector  = new cv::ORB(600),
         cv::Ptr<cv::DescriptorExtractor> extractor = new cv::ORB(600),
-        cv::Ptr<cv::DescriptorMatcher>   matcher   = new cv::BFMatcher(cv::NORM_HAMMING, false),
         bool enableRatioTest                       = false
         );
 
@@ -58,7 +58,8 @@ protected:
 
     bool extractFeatures(const cv::Mat& image, std::vector<cv::KeyPoint>& keypoints, cv::Mat& descriptors) const;
 
-    void getMatches(const cv::Mat& queryDescriptors, std::vector<cv::DMatch>& matches);
+    void findPatternMatch(const cv::Mat queryDescriptors, int patternNumber);
+    void getMatches(const cv::Mat& queryDescriptors, std::vector<cv::DMatch>& matches, int patternIdx);
 
     /**
     * Get the gray image from the input image.
@@ -80,8 +81,12 @@ protected:
 private:
     std::vector<cv::KeyPoint> m_queryKeypoints;
     cv::Mat                   m_queryDescriptors;
-    std::vector<cv::DMatch>   m_matches;
-    std::vector< std::vector<cv::DMatch> > m_knnMatches;
+
+    std::vector<std::vector<cv::DMatch> > m_matches;
+    std::vector<bool> m_matches_homographyFound;
+    std::vector<cv::Mat> m_matches_homography;
+    boost::mutex m_matches_mutex;
+
 
     cv::Mat                   m_grayImg;
     cv::Mat                   m_warpedImg;
@@ -92,7 +97,7 @@ private:
     Pattern                          m_pattern;
     cv::Ptr<cv::FeatureDetector>     m_detector;
     cv::Ptr<cv::DescriptorExtractor> m_extractor;
-    cv::Ptr<cv::DescriptorMatcher>   m_matcher;
+    std::vector<cv::Ptr<cv::DescriptorMatcher> > m_matchers;
 };
 
 #endif
