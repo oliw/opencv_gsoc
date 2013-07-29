@@ -9,6 +9,8 @@ import android.util.Log;
 
 public abstract class CalibrationResult {
     private static final String TAG = "OCVSample::CalibrationResult";
+    
+    public static final String CALIBRATION_SETTINGS_FILE = "CalibrationSettings";
 
     private static final int CAMERA_MATRIX_ROWS = 3;
     private static final int CAMERA_MATRIX_COLS = 3;
@@ -35,6 +37,16 @@ public abstract class CalibrationResult {
         }
 
         editor.commit();
+        
+        // Save to Calibration Settings File
+        SharedPreferences settings = activity.getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
+        editor = settings.edit();
+        editor.putFloat("fx", (float) cameraMatrixArray[0]);
+        editor.putFloat("fx", (float) cameraMatrixArray[4]);
+        editor.putFloat("cx", (float) cameraMatrixArray[2]);
+        editor.putFloat("cy", (float) cameraMatrixArray[5]);
+        editor.commit();
+        
         Log.i(TAG, "Saved camera matrix: " + cameraMatrix.dump());
         Log.i(TAG, "Saved distortion coefficients: " + distortionCoefficients.dump());
     }

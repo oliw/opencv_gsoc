@@ -13,6 +13,7 @@ import org.opencv.markerlessarforandroid.util.SystemUiHider;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -36,6 +37,8 @@ import android.widget.TextView;
 public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
 	
 	private static final String  TAG = "MarkerlessAR::MainScreen::Activity";
+	
+    public static final String CALIBRATION_SETTINGS_FILE = "CalibrationSettings";
 	
 	private NativeFrameProcessor processor;
 	private Mat frame;
@@ -89,8 +92,9 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     	// Add to array
     	Mat[] trainingImages = new Mat[1];;
     	trainingImages[0] = tmp;
-
-    	processor = new NativeFrameProcessor(trainingImages, 1379.9397187316185f, 1403.6016242701958f, 313.61301773339352f, 200.39306393520991f); // TODO Update for android
+    	// Get Camera Calibration Settings
+    	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
+    	processor = new NativeFrameProcessor(trainingImages, settings.getFloat("fx", 0), settings.getFloat("fy", 0), settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO Update for android
     }
     
 	@Override
@@ -138,6 +142,12 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	}
 	
 	@Override
+	public void onStart()
+	{
+		super.onStart();
+	}
+	
+	@Override
 	public void onPause()
 	{
 	     super.onPause();
@@ -159,6 +169,12 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     public void onResume()
     {
         super.onResume();
+    	// Ensure Camera Calibration Settings exist
+    	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
+    	if (settings.getAll().size() == 0) {
+    		startActivity(new Intent(this, CameraCalibrationActivity.class));
+    		return;
+    	}
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
     }
 

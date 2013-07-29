@@ -26,6 +26,7 @@ import org.opencv.core.Mat;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -41,7 +42,7 @@ import android.widget.Toast;
 
 public class CameraCalibrationActivity extends Activity implements CvCameraViewListener2, OnTouchListener {
     private static final String TAG = "OCVSample::Activity";
-
+    
     private CameraBridgeViewBase mOpenCvCameraView;
     private CameraCalibrator mCalibrator;
     private OnCameraFrameRender mOnCameraFrameRender;
@@ -75,9 +76,8 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
         Log.i(TAG, "called onCreate");
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
+        
         setContentView(R.layout.activity_camera_calibration);
-
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.camera_calibration_java_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
@@ -181,7 +181,7 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
                             res.getString(R.string.calibration_unsuccessful);
                     (Toast.makeText(CameraCalibrationActivity.this, resultMessage, Toast.LENGTH_SHORT)).show();
 
-                    if (mCalibrator.isCalibrated()) {
+                    if (mCalibrator.isCalibrated()) {                       
                         CalibrationResult.save(CameraCalibrationActivity.this,
                                 mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients());
                     }
@@ -201,7 +201,10 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
             if (CalibrationResult.tryLoad(this, mCalibrator.getCameraMatrix(), mCalibrator.getDistortionCoefficients())) {
                 mCalibrator.setCalibrated();
             }
-
+            if (!mCalibrator.isCalibrated()) {
+            	Toast toast = Toast.makeText(getApplicationContext(), R.string.calibration_required, Toast.LENGTH_SHORT);
+            	toast.show();
+            }
             mOnCameraFrameRender = new OnCameraFrameRender(new CalibrationFrameRender(mCalibrator));
         }
     }

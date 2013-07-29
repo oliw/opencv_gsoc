@@ -21,7 +21,6 @@
             android:theme="@style/FullscreenTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -32,6 +31,15 @@
         <activity
             android:name="org.opencv.markerlessarforandroid.AboutActivity"
             android:label="@string/title_activity_about" >
+        </activity>
+        <activity
+            android:name="org.opencv.markerlessarforandroid.CameraCalibrationActivity"
+            android:label="@string/title_activity_camera_calibration" 
+            android:screenOrientation="landscape" >
+        </activity>
+        <activity
+            android:name="org.opencv.markerlessarforandroid.CameraCalibrationHelpActivity"
+            android:label="@string/title_activity_camera_calibration_help" >
         </activity>
     </application>
 
