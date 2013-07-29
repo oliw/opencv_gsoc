@@ -257,6 +257,10 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	        	Intent about = new Intent(this, AboutActivity.class);
 	        	startActivity(about);
 	        	return true;
+	        case R.id.calibrate:
+	        	Intent calibrate = new Intent(this, CameraCalibrationActivity.class);
+	        	startActivity(calibrate);
+	        	return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
