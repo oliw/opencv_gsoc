@@ -13,6 +13,7 @@
 // File includes:
 #include "PatternDetector.hpp"
 #include "DebugHelpers.hpp"
+#include "tbb/tbb.h"
 
 ////////////////////////////////////////////////////////////////////
 // Standard includes:
@@ -133,11 +134,9 @@ void PatternDetector::findPatternMatch(const cv::Mat queryDescriptors, int patte
         roughHomography);
 
     // Save matches and homography found
-    m_matches_mutex.lock();
     m_matches[patternIdx] = matches;
     m_matches_homography[patternIdx] = roughHomography;
     m_matches_homographyFound[patternIdx] = homographyFoundinPattern;
-    m_matches_mutex.unlock();
 }
 
 bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& info)
@@ -152,11 +151,9 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
     m_matches = std::vector<std::vector<cv::DMatch> >(m_patterns.size());
     m_matches_homographyFound = std::vector<bool>(m_patterns.size());
     m_matches_homography = std::vector<cv::Mat>(m_patterns.size());
-    boost::thread_group threads;
-    for (int i = 0; i < m_patterns.size(); i++) {
-        threads.add_thread(new boost::thread(&PatternDetector::findPatternMatch,this, m_queryDescriptors, i));
-    }
-    threads.join_all();
+
+    parallel_for(tbb::blocked_range<size_t>(0,m_patterns.size()), PatternMatch(m_queryDescriptors, *this));
+
     // Process results
     bool homographyFound = false;
     int maxFound = 0;

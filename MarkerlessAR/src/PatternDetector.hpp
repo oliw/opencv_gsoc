@@ -15,7 +15,7 @@
 ////////////////////////////////////////////////////////////////////
 // File includes:
 #include "Pattern.hpp"
-#include "boost/thread.hpp"
+#include "tbb/tbb.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/nonfree/features2d.hpp>
@@ -85,8 +85,6 @@ private:
     std::vector<std::vector<cv::DMatch> > m_matches;
     std::vector<bool> m_matches_homographyFound;
     std::vector<cv::Mat> m_matches_homography;
-    boost::mutex m_matches_mutex;
-
 
     cv::Mat                   m_grayImg;
     cv::Mat                   m_warpedImg;
@@ -98,6 +96,20 @@ private:
     cv::Ptr<cv::FeatureDetector>     m_detector;
     cv::Ptr<cv::DescriptorExtractor> m_extractor;
     std::vector<cv::Ptr<cv::DescriptorMatcher> > m_matchers;
+
+    class PatternMatch {
+        cv::Mat queryDescriptors;
+        PatternDetector& parent;
+
+    public:
+        PatternMatch(cv::Mat& queryDescriptors, PatternDetector& parent) : queryDescriptors(queryDescriptors), parent(parent) {}
+
+        void operator() (const tbb::blocked_range<size_t>& r) const {
+            for (size_t i=r.begin(); i!= r.end(); i++) {
+                parent.findPatternMatch(queryDescriptors, i);
+            }
+        }
+    };
 };
 
 #endif
