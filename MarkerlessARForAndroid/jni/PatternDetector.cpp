@@ -13,6 +13,7 @@
 // File includes:
 #include "PatternDetector.hpp"
 #include "DebugHelpers.hpp"
+#include "tbb/tbb.h"
 
 ////////////////////////////////////////////////////////////////////
 // Standard includes:
@@ -24,11 +25,9 @@
 
 PatternDetector::PatternDetector(cv::Ptr<cv::FeatureDetector> detector, 
     cv::Ptr<cv::DescriptorExtractor> extractor, 
-    cv::Ptr<cv::DescriptorMatcher> matcher, 
     bool ratioTest)
     : m_detector(detector)
     , m_extractor(extractor)
-    , m_matcher(matcher)
     , enableRatioTest(ratioTest)
     , enableHomographyRefinement(true)
     , homographyReprojectionThreshold(3)
@@ -41,21 +40,16 @@ void PatternDetector::train(const std::vector<Pattern>& patterns)
     // Store the pattern object
     m_patterns = patterns;
 
-    // API of cv::DescriptorMatcher is somewhat tricky
-    // First we clear old train data:
-    m_matcher->clear();
-
-    // Then we add vector of descriptors (each descriptors matrix describes one image).
-    // This allows us to perform search across multiple images:
-    std::vector<cv::Mat> descriptors(patterns.size());
+    m_matchers = std::vector<cv::Ptr<cv::DescriptorMatcher> >(patterns.size());
     for (int i = 0; i < patterns.size(); i++) {
-        descriptors[i] = patterns[i].descriptors.clone();
+        cv::Ptr<cv::DescriptorMatcher> matcher = new cv::BFMatcher(cv::NORM_HAMMING, false);
+        matcher->clear();
+        std::vector<cv::Mat> descriptors(1);
+        descriptors[0] = patterns[i].descriptors.clone();
+        matcher->add(descriptors);
+        matcher->train();
+        m_matchers[i] = matcher;
     }
-
-    m_matcher->add(descriptors);
-
-    // After adding train data perform actual train:
-    m_matcher->train();
 }
 
 void PatternDetector::buildPatternsFromImages(const std::vector<cv::Mat>& images, std::vector<Pattern>& patterns) const
@@ -97,8 +91,53 @@ void PatternDetector::buildPatternsFromImages(const std::vector<cv::Mat>& images
     }
 }
 
+void PatternDetector::findPatternMatch(const cv::Mat queryDescriptors, int patternIdx) {
+    std::vector<cv::DMatch> matches;
+    matches.clear();
+    if (enableRatioTest)
+    {
+        std::vector< std::vector<cv::DMatch> > knnMatches;
 
+        // To avoid NaN's when best match has zero distance we will use inversed ratio.
+        const float minRatio = 1.f / 1.5f;
 
+        // KNN match will return 2 nearest matches for each query descriptor
+        m_matchers[patternIdx]->knnMatch(queryDescriptors, knnMatches, 2);
+
+        for (size_t i=0; i<knnMatches.size(); i++)
+        {
+            const cv::DMatch& bestMatch   = knnMatches[i][0];
+            const cv::DMatch& betterMatch = knnMatches[i][1];
+
+            float distanceRatio = bestMatch.distance / betterMatch.distance;
+
+            // Pass only matches where distance ratio between
+            // nearest matches is greater than 1.5 (distinct criteria)
+            if (distanceRatio < minRatio)
+            {
+                matches.push_back(bestMatch);
+            }
+        }
+    }
+    else
+    {
+        // Perform regular match
+        m_matchers[patternIdx]->match(queryDescriptors, matches);
+    }
+    cv::Mat roughHomography;
+    // Estimate Homography for pattern and discard outlier matches
+    bool homographyFoundinPattern = refineMatchesWithHomography(
+        m_queryKeypoints,
+        m_patterns[patternIdx].keypoints,
+        homographyReprojectionThreshold,
+        matches,
+        roughHomography);
+
+    // Save matches and homography found
+    m_matches[patternIdx] = matches;
+    m_matches_homography[patternIdx] = roughHomography;
+    m_matches_homographyFound[patternIdx] = homographyFoundinPattern;
+}
 
 bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& info)
 {
@@ -107,40 +146,36 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
     
     // Extract feature points from input gray image
     extractFeatures(m_grayImg, m_queryKeypoints, m_queryDescriptors);
-    
-    // Get matches with current pattern
-    getMatches(m_queryDescriptors, m_matches);
 
+    // Match query against each pattern in parallel
+    m_matches = std::vector<std::vector<cv::DMatch> >(m_patterns.size());
+    m_matches_homographyFound = std::vector<bool>(m_patterns.size());
+    m_matches_homography = std::vector<cv::Mat>(m_patterns.size());
+
+    parallel_for(tbb::blocked_range<size_t>(0,m_patterns.size()), PatternMatch(m_queryDescriptors, *this));
+
+    // Process results
     bool homographyFound = false;
-
-    // Find training pattern with most matches
-    int maxMatches = 0;
-    int matchedPatternIdx = -1;
-
-    // Divide matches for each pattern
-    std::vector<std::vector<cv::DMatch> > m_matches_p(m_patterns.size());
-    for (int m = 0; m < m_matches.size(); m++) {
-        m_matches_p[m_matches[m].imgIdx].push_back(m_matches[m]);
-    }
-
+    int maxFound = 0;
+    int maxFoundIdx = -1;
     for (int i = 0; i < m_patterns.size(); i++) {
-        cv::Mat m_roughHomography_i;
-        // Estimate Homography for pattern and discard outlier matches
-        bool homographyFoundinPattern = refineMatchesWithHomography(
-            m_queryKeypoints,
-            m_patterns[i].keypoints,
-            homographyReprojectionThreshold,
-            m_matches_p[i],
-            m_roughHomography_i);
-
-        if (homographyFoundinPattern && m_matches_p[i].size() > maxMatches) {
-            matchedPatternIdx = i;
-            maxMatches = m_matches_p[i].size();
-            m_roughHomography = m_roughHomography_i;
-            homographyFound = homographyFoundinPattern;
-            m_pattern = m_patterns[i];
+        if (m_matches_homographyFound[i]) {
+            if (m_matches[i].size() > maxFound) {
+                maxFound = m_matches[i].size();
+                maxFoundIdx = i;
+                homographyFound = true;
+            }
         }
     }
+
+    if (!homographyFound) {
+        return false;
+    }
+
+    m_roughHomography = m_matches_homography[maxFoundIdx];
+    m_pattern = m_patterns[maxFoundIdx];
+
+    // The best fitting pattern has been detected matchedPatternIdx, m_roughHomography, homographyFound, m_pattern has been set
 
 #if _DEBUG
     cv::showAndSave("Raw matches", getMatchesImage(image, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
@@ -152,7 +187,7 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
 
     if (homographyFound)
     {
-        info.patternIdx = matchedPatternIdx;
+        info.patternIdx = maxFoundIdx;
 
 #if _DEBUG
         cv::showAndSave("Refined matches using RANSAC", getMatchesImage(image, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
@@ -174,7 +209,7 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
             extractFeatures(m_warpedImg, warpedKeypoints, m_newQueryDescriptors);
 
             // Match with pattern
-            getMatches(m_newQueryDescriptors, refinedMatches);
+            getMatches(m_newQueryDescriptors, refinedMatches, maxFoundIdx);
 
             // Estimate new refinement homography
             homographyFound = refineMatchesWithHomography(
@@ -250,26 +285,28 @@ bool PatternDetector::extractFeatures(const cv::Mat& image, std::vector<cv::KeyP
     return true;
 }
 
-void PatternDetector::getMatches(const cv::Mat& queryDescriptors, std::vector<cv::DMatch>& matches)
+void PatternDetector::getMatches(const cv::Mat& queryDescriptors, std::vector<cv::DMatch>& matches, int patternIdx)
 {
     matches.clear();
 
     if (enableRatioTest)
     {
-        // To avoid NaN's when best match has zero distance we will use inversed ratio. 
-        const float minRatio = 1.f / 1.5f;
-        
-        // KNN match will return 2 nearest matches for each query descriptor
-        m_matcher->knnMatch(queryDescriptors, m_knnMatches, 2);
+        std::vector< std::vector<cv::DMatch> > knnMatches;
 
-        for (size_t i=0; i<m_knnMatches.size(); i++)
+        // To avoid NaN's when best match has zero distance we will use inversed ratio.
+        const float minRatio = 1.f / 1.5f;
+
+        // KNN match will return 2 nearest matches for each query descriptor
+        m_matchers[patternIdx]->knnMatch(queryDescriptors, knnMatches, 2);
+
+        for (size_t i=0; i<knnMatches.size(); i++)
         {
-            const cv::DMatch& bestMatch   = m_knnMatches[i][0];
-            const cv::DMatch& betterMatch = m_knnMatches[i][1];
+            const cv::DMatch& bestMatch   = knnMatches[i][0];
+            const cv::DMatch& betterMatch = knnMatches[i][1];
 
             float distanceRatio = bestMatch.distance / betterMatch.distance;
-            
-            // Pass only matches where distance ratio between 
+
+            // Pass only matches where distance ratio between
             // nearest matches is greater than 1.5 (distinct criteria)
             if (distanceRatio < minRatio)
             {
@@ -280,7 +317,7 @@ void PatternDetector::getMatches(const cv::Mat& queryDescriptors, std::vector<cv
     else
     {
         // Perform regular match
-        m_matcher->match(queryDescriptors, matches);
+        m_matchers[patternIdx]->match(queryDescriptors, matches);
     }
 }
 

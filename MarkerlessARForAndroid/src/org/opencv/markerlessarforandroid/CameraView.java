@@ -1,11 +1,10 @@
 package org.opencv.markerlessarforandroid;
 
-import org.opencv.android.NativeCameraView;
-
+import org.opencv.android.JavaCameraView;
 import android.content.Context;
 import android.util.AttributeSet;
 
-public class CameraView extends NativeCameraView {
+public class CameraView extends JavaCameraView {
 
 	private static final String TAG = "MarkerlessAR::CameraView";
 	
