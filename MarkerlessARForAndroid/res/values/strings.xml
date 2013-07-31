@@ -33,5 +33,6 @@
         <p>Collect several photos and then press the Calibrate button. Once calibration has successfully completed you can return to the main screen.</p> 
         ]]>
     </string>
+    <string name="action_resolution">Resolution</string>
 
 </resources>

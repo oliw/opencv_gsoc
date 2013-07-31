@@ -1,5 +1,8 @@
 package org.opencv.markerlessarforandroid;
 
+import java.util.List;
+import java.util.ListIterator;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -16,6 +19,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,9 +28,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -50,6 +56,10 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION;
 	private SystemUiHider mSystemUiHider;
 	
+    private List<Size> mResolutionList;
+    private MenuItem[] mResolutionMenuItems;
+    private SubMenu mResolutionMenu;
+    
 	private CameraView mOpenCvCameraView;
 	private TextView messageBox;
 	
@@ -258,12 +268,34 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.app_menu, menu);
+	    
+	    // Programatically add list of available resolutions
+	    mResolutionMenu = menu.addSubMenu("Resolution");
+        mResolutionList = mOpenCvCameraView.getResolutionList();
+        mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+
+        ListIterator<Size> resolutionItr = mResolutionList.listIterator();
+        int idx = 0;
+        while(resolutionItr.hasNext()) {
+            Size element = resolutionItr.next();
+            mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
+                    Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
+            idx++;
+         }
 	    return true;
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-	    // Handle item selection
+		// Handle resolutions
+		if (item.getGroupId() == 1) {
+			int id = item.getItemId();
+            Size resolution = mResolutionList.get(id);
+            mOpenCvCameraView.setResolution(resolution);
+			return true;
+		}
+		
+	    // Handle all other items selection
 	    switch (item.getItemId()) {
 	        case R.id.settings:
 	    		Intent intent = new Intent(this, SettingsActivity.class);
