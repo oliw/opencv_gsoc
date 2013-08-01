@@ -254,6 +254,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		}
 		patternDetected = result == 1;
 		return inputFrame.rgba();
+//		return inputFrame.rgba();
 	}
 	
 	Handler msgBoxHandler = new Handler();

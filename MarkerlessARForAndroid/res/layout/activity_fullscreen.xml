@@ -14,8 +14,8 @@
 
     <org.opencv.markerlessarforandroid.CameraView
         android:id="@+id/OpenCVCameraView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:visibility="gone"
         opencv:camera_id="any"
         opencv:show_fps="true" />
