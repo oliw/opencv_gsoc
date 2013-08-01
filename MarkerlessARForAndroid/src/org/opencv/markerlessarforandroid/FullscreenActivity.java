@@ -23,6 +23,7 @@ import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -49,6 +50,8 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	private NativeFrameProcessor processor;
 	private Mat frame;
 	private boolean patternDetected = false;
+	
+	private int frameTicker = 0;
 	
 	private static final boolean AUTO_HIDE = true; 			/* Auto-Hide System UI */
 	private static final int AUTO_HIDE_DELAY_MILLIS = 3000; 
@@ -104,7 +107,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     	trainingImages[0] = tmp;
     	// Get Camera Calibration Settings
     	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
-    	processor = new NativeFrameProcessor(trainingImages, settings.getFloat("fx", 0), settings.getFloat("fy", 0), settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO Update for android
+    	processor = new NativeFrameProcessor(msgBoxHandler, trainingImages, settings.getFloat("fx", 0), settings.getFloat("fy", 0), settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO Update for android
     }
     
 	@Override
@@ -243,21 +246,20 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		frame = inputFrame.rgba();
-		int result = 0;
-		if (processor != null) {
-			result = processor.process(frame);
-		}
-		if (!patternDetected && result == 1) {
-			msgBoxHandler.post(new MessageBoxUpdater("Found Pattern"));
-		} else if (patternDetected && result == 0) {
-			msgBoxHandler.post(new MessageBoxUpdater("Cannot find pattern"));
-		}
-		patternDetected = result == 1;
-		return inputFrame.rgba();
-//		return inputFrame.rgba();
+		processor.setFrame(frame);
+		return frame;
 	}
 	
-	Handler msgBoxHandler = new Handler();
+	Handler msgBoxHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			if (msg.what == 0) {
+				messageBox.setText("Pattern found");
+			} else {
+				messageBox.setText("Pattern not found");
+			}
+		}
+	};
 	
 	public void openSettings(View view) {
 	    // Do something in response to button
@@ -313,20 +315,5 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
-	}
-	
-	
-	private class MessageBoxUpdater implements Runnable {
-		
-		String text;
-		
-		public MessageBoxUpdater(String text) {
-			this.text = text;
-		}
-
-		@Override
-		public void run() {
-			messageBox.setText(text);
-		}
 	}
 }
