@@ -64,6 +64,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     private SubMenu mResolutionMenu;
     
 	private CameraView mOpenCvCameraView;
+	private GraphicsView mGraphicsView;
 	private TextView messageBox;
 	
 	/**
@@ -116,11 +117,11 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 
 		setContentView(R.layout.activity_fullscreen);
 
-		final View contentView = findViewById(R.id.OpenCVCameraView);
+		final View topView = findViewById(R.id.MainViewGroup);
 
 		// Set up an instance of SystemUiHider to control the system UI for
 		// this activity.
-		mSystemUiHider = SystemUiHider.getInstance(this, contentView,
+		mSystemUiHider = SystemUiHider.getInstance(this, topView,
 				HIDER_FLAGS);
 		mSystemUiHider.setup();
 		mSystemUiHider
@@ -136,7 +137,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 				});
 
 		// Set up the user interaction to manually show or hide the system UI.
-		contentView.setOnClickListener(new View.OnClickListener() {
+		topView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				if (TOGGLE_ON_CLICK) {
@@ -147,9 +148,14 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 			}
 		});
 	
-		mOpenCvCameraView = (CameraView) contentView;
+	    topView.setVisibility(SurfaceView.VISIBLE);
+
+		mOpenCvCameraView = (CameraView) findViewById(R.id.OpenCVCameraView);
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
+	 
+	    mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
+	    mGraphicsView.setZOrderMediaOverlay(true);
 	    
 	    messageBox = (TextView) findViewById(R.id.info_message);
 	}
