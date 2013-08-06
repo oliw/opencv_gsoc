@@ -276,13 +276,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 			}
 		}
 	};
-	
-	public void openSettings(View view) {
-	    // Do something in response to button
-		Intent intent = new Intent(this, SettingsActivity.class);
-		startActivity(intent);
-	}
-	
+		
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 	    MenuInflater inflater = getMenuInflater();
