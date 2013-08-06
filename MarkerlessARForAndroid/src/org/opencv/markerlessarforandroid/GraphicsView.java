@@ -21,8 +21,11 @@ public class GraphicsView extends GLSurfaceView {
         setEGLContextClientVersion(2);
         setEGLConfigChooser(8,8,8,8,16,0);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
-        setRenderer(new GraphicsRenderer());
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+	}
+	
+	public void setRenderer(GraphicsRenderer renderer) {
+		super.setRenderer(renderer);
+		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	}
 
 }

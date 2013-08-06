@@ -35,12 +35,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- * 
- * @see SystemUiHider
- */
+
 public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
 	
 	private static final String  TAG = "MarkerlessAR::MainScreen::Activity";
@@ -48,6 +43,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     public static final String CALIBRATION_SETTINGS_FILE = "CalibrationSettings";
 	
 	private NativeFrameProcessor processor;
+	private GraphicsRenderer renderer;
 	private Mat frame;
 	private boolean patternDetected = false;
 	
@@ -153,8 +149,22 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		mOpenCvCameraView = (CameraView) findViewById(R.id.OpenCVCameraView);
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
+	    
+//        mResolutionList = mOpenCvCameraView.getResolutionList();
+//        mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+//
+////        ListIterator<Size> resolutionItr = mResolutionList.listIterator();
+////        int idx = 0;
+////        while(resolutionItr.hasNext()) {
+////            Size element = resolutionItr.next();
+////            mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
+////                    Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
+////            idx++;
+////        }
 	 
+	    renderer = new GraphicsRenderer();
 	    mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
+	    mGraphicsView.setRenderer(renderer);
 	    mGraphicsView.setZOrderMediaOverlay(true);
 	    
 	    messageBox = (TextView) findViewById(R.id.info_message);
@@ -280,17 +290,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	    
 	    // Programatically add list of available resolutions
 	    mResolutionMenu = menu.addSubMenu("Resolution");
-        mResolutionList = mOpenCvCameraView.getResolutionList();
-        mResolutionMenuItems = new MenuItem[mResolutionList.size()];
-
-        ListIterator<Size> resolutionItr = mResolutionList.listIterator();
-        int idx = 0;
-        while(resolutionItr.hasNext()) {
-            Size element = resolutionItr.next();
-            mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
-                    Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
-            idx++;
-         }
 	    return true;
 	}
 	
