@@ -1,5 +1,8 @@
 package org.opencv.markerlessarforandroid;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -17,6 +20,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera.Size;
@@ -42,11 +46,11 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	
     public static final String CALIBRATION_SETTINGS_FILE = "CalibrationSettings";
 	
+    
 	private NativeFrameProcessor processor;
 	private GraphicsRenderer renderer;
-	private Mat frame;
 	
-	private int frameTicker = 0;
+	private Mat frame;
 	
 	private static final boolean AUTO_HIDE = true; 			/* Auto-Hide System UI */
 	private static final int AUTO_HIDE_DELAY_MILLIS = 3000; 
@@ -86,15 +90,29 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     
     private void initAR() {
     	// Load training images 
+    	AssetManager assetManager = getAssets();
+    	String imgFolder = "training-images";
+    	String[] imgs = new String[0];
+    	try {
+    		imgs = assetManager.list(imgFolder);
+		} catch (IOException e) {}
+    	Mat[] trainingImages = new Mat[imgs.length];
     	BitmapFactory.Options opts = new BitmapFactory.Options();
     	opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-    	Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.raw.one, opts);
-    	// Convert to Mat
-    	Mat tmp = new Mat (bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
-    	Utils.bitmapToMat(bmp, tmp);
-    	// Add to array
-    	Mat[] trainingImages = new Mat[1];;
-    	trainingImages[0] = tmp;
+    	InputStream istr;
+    	Bitmap bmp = null;
+    	for (int i = 0; i < imgs.length; i++) {
+    		try {
+				istr = assetManager.open(imgFolder+File.separator+imgs[i]);
+	    		bmp = BitmapFactory.decodeStream(istr, null, opts);
+	        	// Convert to Mat
+	        	Mat tmp = new Mat (bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
+	        	Utils.bitmapToMat(bmp, tmp);
+	        	trainingImages[i] = tmp;
+			} catch (IOException e) {
+				Log.e(TAG, "Could not load a training image from assets");
+			}
+    	}
     	// Get Camera Calibration Settings
     	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
     	processor = new NativeFrameProcessor(msgBoxHandler, trainingImages, settings.getFloat("fx", 0), settings.getFloat("fy", 0), settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO Update for android
@@ -104,19 +122,19 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
       // Initialise camera	
       mOpenCvCameraView.enableView();
       
-      // Build menu item of camera resolutions
-      mResolutionMenu.clear();
-      mResolutionList = mOpenCvCameraView.getResolutionList();
-      mResolutionMenuItems = new MenuItem[mResolutionList.size()];
-
-      ListIterator<Size> resolutionItr = mResolutionList.listIterator();
-      int idx = 0;
-      while(resolutionItr.hasNext()) {
-          Size element = resolutionItr.next();
-          mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
-                  Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
-          idx++;
-      }
+      //Build menu item of camera resolutions
+//      mResolutionMenu.clear();
+//      mResolutionList = mOpenCvCameraView.getResolutionList();
+//      mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+//
+//      ListIterator<Size> resolutionItr = mResolutionList.listIterator();
+//      int idx = 0;
+//      while(resolutionItr.hasNext()) {
+//          Size element = resolutionItr.next();
+//          mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
+//                  Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
+//          idx++;
+//      }
     }
     
 	@Override
