@@ -48,7 +48,7 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
     private OnCameraFrameRender mOnCameraFrameRender;
     private int mWidth;
     private int mHeight;
-
+    
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -116,7 +116,7 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
     public boolean onPrepareOptionsMenu (Menu menu) {
         super.onPrepareOptionsMenu(menu);
         menu.findItem(R.id.preview_mode).setEnabled(true);
-        if (!mCalibrator.isCalibrated())
+        if (mCalibrator == null || !mCalibrator.isCalibrated())
             menu.findItem(R.id.preview_mode).setEnabled(false);
 
         return true;
