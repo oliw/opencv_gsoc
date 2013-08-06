@@ -75,7 +75,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
                     Log.i(TAG, "OpenCV loaded successfully");
                     System.loadLibrary("ar-jni");
                     initAR();
-                    mOpenCvCameraView.enableView();
+                    initCamera();
                 } break;
                 default:
                 {
@@ -105,6 +105,25 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     	// Get Camera Calibration Settings
     	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
     	processor = new NativeFrameProcessor(msgBoxHandler, trainingImages, settings.getFloat("fx", 0), settings.getFloat("fy", 0), settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO Update for android
+    }
+    
+    private void initCamera() {
+      // Initialise camera	
+      mOpenCvCameraView.enableView();
+      
+      // Build menu item of camera resolutions
+      mResolutionMenu.clear();
+      mResolutionList = mOpenCvCameraView.getResolutionList();
+      mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+
+      ListIterator<Size> resolutionItr = mResolutionList.listIterator();
+      int idx = 0;
+      while(resolutionItr.hasNext()) {
+          Size element = resolutionItr.next();
+          mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
+                  Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
+          idx++;
+      }
     }
     
 	@Override
@@ -149,18 +168,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		mOpenCvCameraView = (CameraView) findViewById(R.id.OpenCVCameraView);
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
-	    
-//        mResolutionList = mOpenCvCameraView.getResolutionList();
-//        mResolutionMenuItems = new MenuItem[mResolutionList.size()];
-//
-////        ListIterator<Size> resolutionItr = mResolutionList.listIterator();
-////        int idx = 0;
-////        while(resolutionItr.hasNext()) {
-////            Size element = resolutionItr.next();
-////            mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
-////                    Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
-////            idx++;
-////        }
 	 
 	    renderer = new GraphicsRenderer();
 	    mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
