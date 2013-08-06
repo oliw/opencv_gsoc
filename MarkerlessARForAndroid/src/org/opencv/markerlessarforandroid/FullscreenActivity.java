@@ -45,7 +45,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	private NativeFrameProcessor processor;
 	private GraphicsRenderer renderer;
 	private Mat frame;
-	private boolean patternDetected = false;
 	
 	private int frameTicker = 0;
 	
@@ -84,12 +83,6 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
             }
         }
     };
-    
-    public native int processFrame(long currFrame, long pipelineAddress);
-    public native long initCameraCallibration(float fx, float fy, float cx, float cy);
-    public native void releaseCameraCallibration(long pointer);
-    public native long initARPipeline(long[] images, int imgCount, long callib);
-    public native void releaseARPipeline(long pointer);
     
     private void initAR() {
     	// Load training images 
