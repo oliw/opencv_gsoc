@@ -11,6 +11,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.util.Log;
 
 public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	
@@ -23,6 +24,8 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
     private final float[] mVMatrix = new float[16];
 
 	private Axis xAxis;
+	private Axis yAxis;
+	private Axis zAxis;
 
 	public GraphicsRenderer(NativeFrameProcessor processor) {
 		this.processor = processor;
@@ -34,15 +37,23 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	public void onDrawFrame(GL10 unused) {
 		// Redraw background color
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+		        
+	    setModelViewMatrix();
 		
-		// Set the camera position (View matrix)
-	    Matrix.setLookAtM(mVMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
-
+	    
 	    // Calculate the projection and view transformation
-	    Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
-		
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+        
 		xAxis.draw(mMVPMatrix);
+		yAxis.draw(mMVPMatrix);
+		zAxis.draw(mMVPMatrix);
 	}
+
+	private void setModelViewMatrix() {
+		// Set the camera position (View matrix)
+		Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+	}
+
 
 	// This is called whenever the surface changes; for example, when switching
 	// from portrait to landscape. It is also called after the surface has been
@@ -51,7 +62,6 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		GLES20.glViewport(0, 0, width, height);
 		float ratio = (float) width / height;
-		
 		Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 	}
 
@@ -63,7 +73,9 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// Set the background frame color to grey
 		GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		
-		xAxis = new Axis(1.0f,0.0f,0.0f);
+		xAxis = new Axis(0.5f,0.0f,0.0f,1.0f,0.0f,0.0f);
+		yAxis = new Axis(0.0f,0.5f,0.0f,0.0f,1.0f,0.0f);
+		zAxis = new Axis(0.0f,0.0f,1.0f,0.0f,0.0f,1.0f);
 	}
 	
 	// Loads and compiles shaders
@@ -78,6 +90,26 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 	    return shader;
 	}
+	
+    /**
+     * Utility method for debugging OpenGL calls. Provide the name of the call
+     * just after making it:
+     *
+     * <pre>
+     * mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
+     * MyGLRenderer.checkGlError("glGetUniformLocation");</pre>
+     *
+     * If the operation is not successful, the check throws an error.
+     *
+     * @param glOperation - Name of the OpenGL call to check.
+     */
+    public static void checkGlError(String glOperation) {
+        int error;
+        while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+            Log.e(TAG, glOperation + ": glError " + error);
+            throw new RuntimeException(glOperation + ": glError " + error);
+        }
+    }
 
 }
 
@@ -99,48 +131,40 @@ class Axis {
 		    "  gl_FragColor = vColor;" +
 		    "}";
 	
-    private final int vertexCount = squareCoords.length / COORDS_PER_VERTEX;
+    private int vertexCount;
     private final int vertexStride = COORDS_PER_VERTEX * 4; // bytes per vertex
     
     // Set color with red, green, blue and alpha (opacity) values
     float color[];
 	
+    // OpenGL Buffer for storing shape coordinates
 	private FloatBuffer vertexBuffer;
-	private ShortBuffer drawListBuffer;
-    private final int mProgram;
+
+	// Rendering program for shape
+	private final int mProgram;
+	
     private int mPositionHandle;
     private int mColorHandle;
     private int mMVPMatrixHandle;
 
 	// number of coordinates per vertex in this array
 	static final int COORDS_PER_VERTEX = 3;
-	static float squareCoords[] = { -0.5f, 0.5f, 0.0f, // top left
-			-0.5f, -0.5f, 0.0f, // bottom left
-			0.5f, -0.5f, 0.0f, // bottom right
-			0.5f, 0.5f, 0.0f }; // top right
+	float lineCoords[];
 
-	private short drawOrder[] = { 0, 1, 2, 0, 2, 3 }; // order to draw vertices
-
-	public Axis(float r, float g, float b) {
+	public Axis(float x, float y, float z, float r, float g, float b) {
+	
+		lineCoords = new float[] {0.0f, 0.0f, 0.0f, x, y, z};
+		vertexCount = lineCoords.length / COORDS_PER_VERTEX;
 		color = new float[] {r,g,b,1.0f};
 		
 		// initialize vertex byte buffer for shape coordinates
 		ByteBuffer bb = ByteBuffer.allocateDirect(
 		// (# of coordinate values * 4 bytes per float)
-				squareCoords.length * 4);
+				lineCoords.length * 4);
 		bb.order(ByteOrder.nativeOrder());
 		vertexBuffer = bb.asFloatBuffer();
-		vertexBuffer.put(squareCoords);
+		vertexBuffer.put(lineCoords);
 		vertexBuffer.position(0);
-
-		// initialize byte buffer for the draw list
-		ByteBuffer dlb = ByteBuffer.allocateDirect(
-		// (# of coordinate values * 2 bytes per short)
-				drawOrder.length * 2);
-		dlb.order(ByteOrder.nativeOrder());
-		drawListBuffer = dlb.asShortBuffer();
-		drawListBuffer.put(drawOrder);
-		drawListBuffer.position(0);
 		
 		int vertexShader = GraphicsRenderer.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
 	    int fragmentShader = GraphicsRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
@@ -158,10 +182,10 @@ class Axis {
 	    // get handle to vertex shader's vPosition member
 	    mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
 
-	    // Enable a handle to the triangle vertices
+	    // Enable a handle to the axis vertices
 	    GLES20.glEnableVertexAttribArray(mPositionHandle);
 
-	    // Prepare the triangle coordinate data
+	    // Prepare the axis coordinate data
 	    GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
 	                                 GLES20.GL_FLOAT, false,
 	                                 vertexStride, vertexBuffer);
@@ -169,19 +193,19 @@ class Axis {
 	    // get handle to fragment shader's vColor member
 	    mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
 
-	    // Set color for drawing the triangle
+	    // Set color for drawing the square
 	    GLES20.glUniform4fv(mColorHandle, 1, color, 0);
 	    
 	    // get handle to shape's transformation matrix
 	    mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+	    GraphicsRenderer.checkGlError("glGetUniformLocation");
 	    
 	    // Apply the projection and view transformation
 	    GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+	    GraphicsRenderer.checkGlError("glUniformMatrix4fv");
 	    
-	    // Draw the squares
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length,
-                GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
-
+	    GLES20.glDrawArrays(GLES20.GL_LINES, 0, vertexCount);
+	    
 	    // Disable vertex array
 	    GLES20.glDisableVertexAttribArray(mPositionHandle);
 	}

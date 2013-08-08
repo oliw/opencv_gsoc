@@ -198,6 +198,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	public void onPause()
 	{
 	     super.onPause();
+	     mGraphicsView.onPause();
 	     if (mOpenCvCameraView != null)
 	         mOpenCvCameraView.disableView();
 	}
@@ -216,6 +217,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
     public void onResume()
     {
         super.onResume();
+        mGraphicsView.onResume();
     	// Ensure Camera Calibration Settings exist
     	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
     	if (settings.getAll().size() == 0) {
