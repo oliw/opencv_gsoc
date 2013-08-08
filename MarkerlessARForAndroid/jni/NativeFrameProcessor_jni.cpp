@@ -46,4 +46,23 @@ extern "C" {
 		bool isFound = pipeline->processFrame(*mat);
 		return isFound ? 1 : 0;
 	}
+
+	JNIEXPORT jlong JNICALL
+	Java_org_opencv_markerlessarforandroid_NativeFrameProcessor_nativeGetPose
+	(JNIEnv *env, jobject obj, jlong object)
+	{
+		ARPipeline *pipeline = (ARPipeline *)object;
+		const Transformation& transformation = pipeline->getPatternLocation();
+		Matrix44 mat = transformation.getMat44();
+
+		jclass jcClass = env->GetObjectClass(obj);
+		jfieldID poseArrayId = env->GetFieldID(jcClass, "pose", "[F");
+		jobject mvdata = env->GetObjectField(obj, poseArrayId);
+		jfloatArray * poseArray = reinterpret_cast<jfloatArray*>(&mvdata);
+		float * data = env->GetFloatArrayElements(*poseArray, NULL);
+		for (int i = 0; i < 16 ; i++) {
+			data[i] = mat.data[i];
+		}
+		env->ReleaseFloatArrayElements(*poseArray, data, 0);
+	}
 }

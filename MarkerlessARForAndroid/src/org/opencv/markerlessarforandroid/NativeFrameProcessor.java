@@ -10,6 +10,7 @@ public class NativeFrameProcessor {
 	private long nativeARPipelineObject = 0;
 	
 	private Mat buffer;
+	private float[] pose;
 	private final Semaphore producerSemaphore = new Semaphore(1);
 	private final Semaphore consumerSempahore = new Semaphore(0);
 	private boolean exit = false;
@@ -31,6 +32,9 @@ public class NativeFrameProcessor {
 		try {
 			consumerSempahore.acquire();
 			int result = nativeProcess(nativeARPipelineObject, buffer.getNativeObjAddr());
+			if (result == 1) {
+				nativeGetPose(nativeARPipelineObject);
+			}
 			buffer = null;
 			producerSemaphore.release();
 			return result;
@@ -52,8 +56,13 @@ public class NativeFrameProcessor {
 		nativeARPipelineObject = 0;
 	}
 	
+	public float[] getPose() {
+		return pose;
+	}
+	
 	private static native long nativeCreateObject(long[] images, int nImages, float fx, float fy, float cx, float cy);
 	private static native int nativeProcess(long object, long frame); 
+	private static native void nativeGetPose(long object);
 	private static native void nativeDestroyObject(long object);
 	
 	private Thread thread = new Thread() {

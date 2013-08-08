@@ -180,7 +180,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 	    mOpenCvCameraView.setCvCameraViewListener(this);
 	 
-	    renderer = new GraphicsRenderer();
+	    renderer = new GraphicsRenderer(processor);
 	    mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
 	    mGraphicsView.setRenderer(renderer);
 	    mGraphicsView.setZOrderMediaOverlay(true);
