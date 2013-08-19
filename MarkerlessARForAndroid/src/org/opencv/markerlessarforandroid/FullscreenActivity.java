@@ -3,6 +3,7 @@ package org.opencv.markerlessarforandroid;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -39,104 +40,122 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+public class FullscreenActivity extends Activity implements
+		CvCameraViewListener2 {
 
-public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
-	
-	private static final String  TAG = "MarkerlessAR::MainScreen::Activity";
-	
-    public static final String CALIBRATION_SETTINGS_FILE = "CalibrationSettings";
-	
-    
+	private static final String TAG = "MarkerlessAR::MainScreen::Activity";
+
+	public static final String CALIBRATION_SETTINGS_FILE = "CalibrationSettings";
+
 	private NativeFrameProcessor processor;
 	private GraphicsRenderer renderer;
-	
+
 	private Mat frame;
-	
-	private static final boolean AUTO_HIDE = true; 			/* Auto-Hide System UI */
-	private static final int AUTO_HIDE_DELAY_MILLIS = 3000; 
-	private static final boolean TOGGLE_ON_CLICK = true; 	/* Toggle System UI when pushed */
+
+	private static final boolean AUTO_HIDE = true; /* Auto-Hide System UI */
+	private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+	private static final boolean TOGGLE_ON_CLICK = true; /*
+														 * Toggle System UI when
+														 * pushed
+														 */
 	private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION;
 	private SystemUiHider mSystemUiHider;
-	
-    private List<Size> mResolutionList;
-    private MenuItem[] mResolutionMenuItems;
-    private SubMenu mResolutionMenu;
-    
+
+	private List<Size> mResolutionList;
+	private MenuItem[] mResolutionMenuItems;
+	private SubMenu mResolutionMenu;
+
 	private CameraView mOpenCvCameraView;
 	private GraphicsView mGraphicsView;
 	private TextView messageBox;
-	
+
 	/**
 	 * Dynamically load OpenCV library and additional required libraries
 	 */
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    System.loadLibrary("ar-jni");
-                    initAR();
-                    initCamera();
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                } break;
-            }
-        }
-    };
-    
-    private void initAR() {
-    	// Load training images 
-    	AssetManager assetManager = getAssets();
-    	String imgFolder = "training-images";
-    	String[] imgs = new String[0];
-    	try {
-    		imgs = assetManager.list(imgFolder);
-		} catch (IOException e) {}
-    	Mat[] trainingImages = new Mat[imgs.length];
-    	BitmapFactory.Options opts = new BitmapFactory.Options();
-    	opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-    	InputStream istr;
-    	Bitmap bmp = null;
-    	for (int i = 0; i < imgs.length; i++) {
-    		try {
-				istr = assetManager.open(imgFolder+File.separator+imgs[i]);
-	    		bmp = BitmapFactory.decodeStream(istr, null, opts);
-	        	// Convert to Mat
-	        	Mat tmp = new Mat (bmp.getWidth(), bmp.getHeight(), CvType.CV_8UC1);
-	        	Utils.bitmapToMat(bmp, tmp);
-	        	trainingImages[i] = tmp;
+	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+		@Override
+		public void onManagerConnected(int status) {
+			switch (status) {
+			case LoaderCallbackInterface.SUCCESS: {
+				Log.i(TAG, "OpenCV loaded successfully");
+				System.loadLibrary("ar-jni");
+				initAR();
+				initCamera();
+				initGraphics();
+			}
+				break;
+			default: {
+				super.onManagerConnected(status);
+			}
+				break;
+			}
+		}
+	};
+
+	private void initAR() {
+		// Load training images
+		Mat[] trainingImages = loadTrainingImages();
+		// Get Camera Calibration Settings
+		SharedPreferences settings = getSharedPreferences(
+				CALIBRATION_SETTINGS_FILE, 0);
+		processor = new NativeFrameProcessor(this, trainingImages,
+				settings.getFloat("fx", 0), settings.getFloat("fy", 0),
+				settings.getFloat("cx", 0), settings.getFloat("cy", 0));
+	}
+
+	private Mat[] loadTrainingImages() {
+		AssetManager assetManager = getAssets();
+		String imgFolder = "training-images";
+		String[] imgs = new String[0];
+		try {
+			imgs = assetManager.list(imgFolder);
+		} catch (IOException e) {
+		}
+		Mat[] trainingImages = new Mat[imgs.length];
+		BitmapFactory.Options opts = new BitmapFactory.Options();
+		opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+		InputStream istr;
+		Bitmap bmp = null;
+		for (int i = 0; i < imgs.length; i++) {
+			try {
+				istr = assetManager.open(imgFolder + File.separator + imgs[i]);
+				bmp = BitmapFactory.decodeStream(istr, null, opts);
+				// Convert to Mat
+				Mat tmp = new Mat(bmp.getWidth(), bmp.getHeight(),
+						CvType.CV_8UC1);
+				Utils.bitmapToMat(bmp, tmp);
+				trainingImages[i] = tmp;
 			} catch (IOException e) {
 				Log.e(TAG, "Could not load a training image from assets");
 			}
-    	}
-    	// Get Camera Calibration Settings
-    	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
-    	processor = new NativeFrameProcessor(msgBoxHandler, trainingImages, settings.getFloat("fx", 0), settings.getFloat("fy", 0), settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO Update for android
-    }
-    
-    private void initCamera() {
-      // Initialise camera	
-      mOpenCvCameraView.enableView();
-      
-      //Build menu item of camera resolutions
-//      mResolutionMenu.clear();
-//      mResolutionList = mOpenCvCameraView.getResolutionList();
-//      mResolutionMenuItems = new MenuItem[mResolutionList.size()];
-//
-//      ListIterator<Size> resolutionItr = mResolutionList.listIterator();
-//      int idx = 0;
-//      while(resolutionItr.hasNext()) {
-//          Size element = resolutionItr.next();
-//          mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
-//                  Integer.valueOf(element.width).toString() + "x" + Integer.valueOf(element.height).toString());
-//          idx++;
-//      }
-    }
-    
+		}
+		return trainingImages;
+	}
+
+	private void initCamera() {
+		// Initialise camera
+		mOpenCvCameraView.enableView();
+
+		// Build menu item of camera resolutions
+		// mResolutionMenu.clear();
+		// mResolutionList = mOpenCvCameraView.getResolutionList();
+		// mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+		//
+		// ListIterator<Size> resolutionItr = mResolutionList.listIterator();
+		// int idx = 0;
+		// while(resolutionItr.hasNext()) {
+		// Size element = resolutionItr.next();
+		// mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
+		// Integer.valueOf(element.width).toString() + "x" +
+		// Integer.valueOf(element.height).toString());
+		// idx++;
+		// }
+	}
+
+	private void initGraphics() {
+		renderer.setRenderer(processor);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -147,8 +166,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 
 		// Set up an instance of SystemUiHider to control the system UI for
 		// this activity.
-		mSystemUiHider = SystemUiHider.getInstance(this, topView,
-				HIDER_FLAGS);
+		mSystemUiHider = SystemUiHider.getInstance(this, topView, HIDER_FLAGS);
 		mSystemUiHider.setup();
 		mSystemUiHider
 				.setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener() {
@@ -173,59 +191,57 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 				}
 			}
 		});
-	
-	    topView.setVisibility(SurfaceView.VISIBLE);
+
+		topView.setVisibility(SurfaceView.VISIBLE);
 
 		mOpenCvCameraView = (CameraView) findViewById(R.id.OpenCVCameraView);
-	    mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-	    mOpenCvCameraView.setCvCameraViewListener(this);
-	 
-	    renderer = new GraphicsRenderer(processor);
-	    mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
-	    mGraphicsView.setRenderer(renderer);
-	    mGraphicsView.setZOrderMediaOverlay(true);
-	    
-	    messageBox = (TextView) findViewById(R.id.info_message);
+		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
+		mOpenCvCameraView.setCvCameraViewListener(this);
+
+		renderer = new GraphicsRenderer();
+		mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
+		mGraphicsView.setRenderer(renderer);
+		mGraphicsView.setZOrderMediaOverlay(true);
+
+		messageBox = (TextView) findViewById(R.id.info_message);
 	}
-	
+
 	@Override
-	public void onStart()
-	{
+	public void onStart() {
 		super.onStart();
 	}
-	
+
 	@Override
-	public void onPause()
-	{
-	     super.onPause();
-	     mGraphicsView.onPause();
-	     if (mOpenCvCameraView != null)
-	         mOpenCvCameraView.disableView();
+	public void onPause() {
+		super.onPause();
+		mGraphicsView.onPause();
+		if (mOpenCvCameraView != null)
+			mOpenCvCameraView.disableView();
 	}
-	
+
 	@Override
-	public void onDestroy()
-	{
-	     super.onDestroy();
-	     if (mOpenCvCameraView != null)
-	         mOpenCvCameraView.disableView();
-	     if (processor != null)
-	    	 processor.release();
+	public void onDestroy() {
+		super.onDestroy();
+		if (mOpenCvCameraView != null)
+			mOpenCvCameraView.disableView();
+		if (processor != null)
+			processor.release();
 	}
-	
-    @Override
-    public void onResume()
-    {
-        super.onResume();
-        mGraphicsView.onResume();
-    	// Ensure Camera Calibration Settings exist
-    	SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
-    	if (settings.getAll().size() == 0) {
-    		startActivity(new Intent(this, CameraCalibrationActivity.class));
-    		return;
-    	}
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
-    }
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		mGraphicsView.onResume();
+		// Ensure Camera Calibration Settings exist
+		SharedPreferences settings = getSharedPreferences(
+				CALIBRATION_SETTINGS_FILE, 0);
+		if (settings.getAll().size() == 0) {
+			startActivity(new Intent(this, CameraCalibrationActivity.class));
+			return;
+		}
+		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
+				mLoaderCallback);
+	}
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
@@ -238,8 +254,8 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 
 	/**
 	 * Touch listener to use for in-layout UI controls to delay hiding the
-	 * system UI. This is to prevent the jarring behaviour of controls going away
-	 * while interacting with activity UI.
+	 * system UI. This is to prevent the jarring behaviour of controls going
+	 * away while interacting with activity UI.
 	 */
 	View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
 		@Override
@@ -271,7 +287,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		frame = new Mat();
-		
+
 	}
 
 	@Override
@@ -285,54 +301,55 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 		processor.setFrame(frame);
 		return frame;
 	}
-	
-	Handler msgBoxHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			if (msg.what == 0) {
-				messageBox.setText("Pattern found");
-			} else {
-				messageBox.setText("Pattern not found");
-			}
-		}
-	};
-		
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-	    MenuInflater inflater = getMenuInflater();
-	    inflater.inflate(R.menu.app_menu, menu);
-	    
-	    // Programatically add list of available resolutions
-	    mResolutionMenu = menu.addSubMenu("Resolution");
-	    return true;
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.app_menu, menu);
+
+		// Programatically add list of available resolutions
+		mResolutionMenu = menu.addSubMenu("Resolution");
+		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle resolutions
 		if (item.getGroupId() == 1) {
 			int id = item.getItemId();
-            Size resolution = mResolutionList.get(id);
-            mOpenCvCameraView.setResolution(resolution);
+			Size resolution = mResolutionList.get(id);
+			mOpenCvCameraView.setResolution(resolution);
 			return true;
 		}
-		
-	    // Handle all other items selection
-	    switch (item.getItemId()) {
-	        case R.id.settings:
-	    		Intent intent = new Intent(this, SettingsActivity.class);
-	    		startActivity(intent);
-	    	    return true;
-	        case R.id.about:
-	        	Intent about = new Intent(this, AboutActivity.class);
-	        	startActivity(about);
-	        	return true;
-	        case R.id.calibrate:
-	        	Intent calibrate = new Intent(this, CameraCalibrationActivity.class);
-	        	startActivity(calibrate);
-	        	return true;
-	        default:
-	            return super.onOptionsItemSelected(item);
-	    }
+
+		// Handle all other items selection
+		switch (item.getItemId()) {
+		case R.id.settings:
+			Intent intent = new Intent(this, SettingsActivity.class);
+			startActivity(intent);
+			return true;
+		case R.id.about:
+			Intent about = new Intent(this, AboutActivity.class);
+			startActivity(about);
+			return true;
+		case R.id.calibrate:
+			Intent calibrate = new Intent(this, CameraCalibrationActivity.class);
+			startActivity(calibrate);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	Handler consoleHandler = new Handler();
+	public void showMessage(final String msg) {
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				messageBox.setText(msg);
+				
+			}
+		};
+		consoleHandler.post(r);
 	}
 }

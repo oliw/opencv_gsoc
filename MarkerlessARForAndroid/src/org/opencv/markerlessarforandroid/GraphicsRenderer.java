@@ -3,8 +3,6 @@ package org.opencv.markerlessarforandroid;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
-
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -34,10 +32,6 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	private Axis yAxis;
 	private Axis zAxis;
 
-	public GraphicsRenderer(NativeFrameProcessor processor) {
-		this.processor = processor;
-	}
-
 	// This is called whenever it’s time to draw a new frame.
 	// Note we don't use GL10 we use the static methods in GLES20 instead
 	@Override
@@ -54,20 +48,26 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// direction to be up
 		Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
-		// Set mVMatrix with the object post relative to the camera
-		Mat pose3D = null; // The matrix that maps from camera to marker pose
-		
-		// NB. OpenCV stores elements in row-major order
-		// OpenGL expects elements in column-major order
-		pose3D.get(0,0,mVMatrix);
-		
-		// Calculate the projection and view transformation
-		Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+		if (processor != null) {
+			// Set mVMatrix with the object post relative to the camera
+			// The matrix that maps from
+			// camera to marker pose
 
-		// Draw each object under the current mMVPMatrix
-		xAxis.draw(mMVPMatrix);
-		yAxis.draw(mMVPMatrix);
-		zAxis.draw(mMVPMatrix);
+			if (processor.patternFound()) {
+				Mat pose3D = processor.getPose();
+				// NB. OpenCV stores elements in row-major order
+				// OpenGL expects elements in column-major order
+				pose3D.get(0, 0, mVMatrix);
+
+				// Calculate the projection and view transformation
+				Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+
+				// Draw each object under the current mMVPMatrix
+				xAxis.draw(mMVPMatrix);
+				yAxis.draw(mMVPMatrix);
+				zAxis.draw(mMVPMatrix);
+			}
+		}
 	}
 
 	/**
@@ -148,6 +148,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 			Log.e(TAG, glOperation + ": glError " + error);
 			throw new RuntimeException(glOperation + ": glError " + error);
 		}
+	}
+	
+	public void setRenderer(NativeFrameProcessor processor) {
+		this.processor = processor;
 	}
 
 }
@@ -252,4 +256,5 @@ class Axis {
 		// Disable vertex array
 		GLES20.glDisableVertexAttribArray(mPositionHandle);
 	}
+	
 }
