@@ -7,7 +7,7 @@ import android.os.Handler;
 
 public class NativeFrameProcessor {
 
-	protected FullscreenActivity context;
+	protected MainActivity context;
 
 	private long nativeARPipelineObject = 0;
 
@@ -19,7 +19,7 @@ public class NativeFrameProcessor {
 	private final Semaphore consumerSempahore = new Semaphore(0);
 	private boolean exit = false;
 
-	public NativeFrameProcessor(FullscreenActivity context,
+	public NativeFrameProcessor(MainActivity context,
 			Mat[] trainingImages, float fx, float fy, float cx, float cy) {
 		this.context = context;
 		int nImages = trainingImages.length;

@@ -3,10 +3,7 @@ package org.opencv.markerlessarforandroid;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.util.List;
-import java.util.ListIterator;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -28,7 +25,6 @@ import android.hardware.Camera.Size;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,9 +34,8 @@ import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
-public class FullscreenActivity extends Activity implements
+public class MainActivity extends Activity implements
 		CvCameraViewListener2 {
 
 	private static final String TAG = "MarkerlessAR::MainScreen::Activity";
