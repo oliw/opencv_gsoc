@@ -14,7 +14,6 @@
 
 ////////////////////////////////////////////////////////////////////
 // File includes:
-#include "GeometryTypes.hpp"
 #include "CameraCalibration.hpp"
 
 #include <opencv2/opencv.hpp>
@@ -42,7 +41,7 @@ struct PatternTrackingInfo
 {
   cv::Mat                   homography;
   std::vector<cv::Point2f>  points2d;
-  Transformation            pose3d;
+  cv::Mat_<float>           pose3d;
   int                       patternIdx;
 
   void draw2dContour(cv::Mat& image, cv::Scalar color) const;

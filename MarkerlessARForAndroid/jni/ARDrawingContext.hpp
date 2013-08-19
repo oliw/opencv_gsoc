@@ -14,7 +14,6 @@
 
 ////////////////////////////////////////////////////////////////////
 // File includes:
-#include "GeometryTypes.hpp"
 #include "CameraCalibration.hpp"
 
 ////////////////////////////////////////////////////////////////////
@@ -31,8 +30,7 @@ public:
 
   
   bool                isPatternPresent;
-  Transformation      patternPose;
-
+  cv::Mat_<float>     patternPose;
 
   //! Set the new frame for the background
   void updateBackground(const cv::Mat& frame);
@@ -51,7 +49,7 @@ private:
   void drawAugmentedScene();
 
   //! Builds the right projection matrix from the camera calibration for AR
-  void buildProjectionMatrix(const CameraCalibration& calibration, int w, int h, Matrix44& result);
+  void buildProjectionMatrix(const CameraCalibration& calibration, int w, int h, cv::Mat& result);
   
   //! Draws the coordinate axis 
   void drawCoordinateAxis();
