@@ -126,13 +126,16 @@ void ARDrawingContext::drawCameraFrame()
 void ARDrawingContext::drawAugmentedScene()
 {
   // Init augmentation projection
-  Matrix44 projectionMatrix;
+  cv::Mat projectionMatrix = cv::Mat(4,4,CV_32FC1);
   int w = m_backgroundImage.cols;
   int h = m_backgroundImage.rows;
   buildProjectionMatrix(m_calibration, w, h, projectionMatrix);
 
   glMatrixMode(GL_PROJECTION);
-  glLoadMatrixf(projectionMatrix.data);
+  // OpenCV treats matrices as row-major but OpenGL treats matrices as column-major
+  cv::Mat projectionMatrixGL;
+  cv::transpose(projectionMatrix, projectionMatrixGL);
+  glLoadMatrixf((float*) projectionMatrixGL.data);
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
@@ -140,8 +143,11 @@ void ARDrawingContext::drawAugmentedScene()
   if (isPatternPresent)
   {
     // Set the pattern transformation
-    Matrix44 glMatrix = patternPose.getMat44();
-    glLoadMatrixf(reinterpret_cast<const GLfloat*>(&glMatrix.data[0]));
+    // OpenCV treats matrices as row-major but OpenGL treats matrices as column-major
+    cv::Mat modelviewMatrixGL;
+    cv::transpose(patternPose2, modelviewMatrixGL);
+    float* pointer = (float*) patternPose2.data;
+    glLoadMatrixf(reinterpret_cast<const GLfloat*>(pointer));
 
     // Render model
     drawCoordinateAxis();
@@ -149,7 +155,7 @@ void ARDrawingContext::drawAugmentedScene()
   }
 }
 
-void ARDrawingContext::buildProjectionMatrix(const CameraCalibration& calibration, int screen_width, int screen_height, Matrix44& projectionMatrix)
+void ARDrawingContext::buildProjectionMatrix(const CameraCalibration& calibration, int screen_width, int screen_height, cv::Mat& projectionMatrix)
 {
   float nearPlane = 0.01f;  // Near clipping distance
   float farPlane  = 100.0f;  // Far clipping distance
@@ -160,25 +166,26 @@ void ARDrawingContext::buildProjectionMatrix(const CameraCalibration& calibratio
   float c_x = calibration.cx(); // Camera primary point x
   float c_y = calibration.cy(); // Camera primary point y
 
-  projectionMatrix.data[0] = -2.0f * f_x / screen_width;
-  projectionMatrix.data[1] = 0.0f;
-  projectionMatrix.data[2] = 0.0f;
-  projectionMatrix.data[3] = 0.0f;
+  //NB. OpenGL specifies matrices in column-major order
+  projectionMatrix.at<float>(0,0) = -2.0f * f_x / screen_width;
+  projectionMatrix.at<float>(1,0) = 0.0f;
+  projectionMatrix.at<float>(2,0) = 0.0f;
+  projectionMatrix.at<float>(3,0) = 0.0f;
 
-  projectionMatrix.data[4] = 0.0f;
-  projectionMatrix.data[5] = 2.0f * f_y / screen_height;
-  projectionMatrix.data[6] = 0.0f;
-  projectionMatrix.data[7] = 0.0f;
+  projectionMatrix.at<float>(0,1) = 0.0f;
+  projectionMatrix.at<float>(1,1) = 2.0f * f_y / screen_height;
+  projectionMatrix.at<float>(2,1) = 0.0f;
+  projectionMatrix.at<float>(3,1) = 0.0f;
 
-  projectionMatrix.data[8] = 2.0f * c_x / screen_width - 1.0f;
-  projectionMatrix.data[9] = 2.0f * c_y / screen_height - 1.0f;    
-  projectionMatrix.data[10] = -( farPlane + nearPlane) / ( farPlane - nearPlane );
-  projectionMatrix.data[11] = -1.0f;
+  projectionMatrix.at<float>(0,2) = 2.0f * c_x / screen_width - 1.0f;
+  projectionMatrix.at<float>(1,2) = 2.0f * c_y / screen_height - 1.0f;
+  projectionMatrix.at<float>(2,2) = -( farPlane + nearPlane) / ( farPlane - nearPlane );
+  projectionMatrix.at<float>(3,2) = -1.0f;
 
-  projectionMatrix.data[12] = 0.0f;
-  projectionMatrix.data[13] = 0.0f;
-  projectionMatrix.data[14] = -2.0f * farPlane * nearPlane / ( farPlane - nearPlane );        
-  projectionMatrix.data[15] = 0.0f;
+  projectionMatrix.at<float>(0,3) = 0.0f;
+  projectionMatrix.at<float>(1,3) = 0.0f;
+  projectionMatrix.at<float>(2,3) = -2.0f * farPlane * nearPlane / ( farPlane - nearPlane );
+  projectionMatrix.at<float>(3,3) = 0.0f;
 }
 
 
