@@ -2,8 +2,6 @@ add_executable(markerless_ar_demo ARDrawingContext.cpp
 ARDrawingContext.hpp
 CameraCalibration.cpp
 CameraCalibration.hpp
-GeometryTypes.cpp
-GeometryTypes.hpp
 main.cpp
 ARPipeline.hpp
 ARPipeline.cpp

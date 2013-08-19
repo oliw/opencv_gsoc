@@ -14,7 +14,6 @@
 
 ////////////////////////////////////////////////////////////////////
 // File includes:
-#include "GeometryTypes.hpp"
 #include "CameraCalibration.hpp"
 
 #include <opencv2/opencv.hpp>

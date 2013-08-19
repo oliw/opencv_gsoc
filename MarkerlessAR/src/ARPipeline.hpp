@@ -16,7 +16,6 @@
 // File includes:
 #include "PatternDetector.hpp"
 #include "CameraCalibration.hpp"
-#include "GeometryTypes.hpp"
 
 class ARPipeline
 {
@@ -28,7 +27,6 @@ public:
   const cv::Mat_<float>& getPatternLocation() const;
 
   PatternDetector     m_patternDetector;
-private:
 
 private:
   CameraCalibration   m_calibration;
