@@ -145,8 +145,8 @@ void ARDrawingContext::drawAugmentedScene()
     // Set the pattern transformation
     // OpenCV treats matrices as row-major but OpenGL treats matrices as column-major
     cv::Mat modelviewMatrixGL;
-    cv::transpose(patternPose2, modelviewMatrixGL);
-    float* pointer = (float*) patternPose2.data;
+    cv::transpose(patternPose, modelviewMatrixGL);
+    float* pointer = (float*) patternPose.data;
     glLoadMatrixf(reinterpret_cast<const GLfloat*>(pointer));
 
     // Render model

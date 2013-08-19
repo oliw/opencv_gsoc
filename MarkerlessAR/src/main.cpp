@@ -170,7 +170,7 @@ bool processFrame(const cv::Mat& cameraFrame, ARPipeline& pipeline, ARDrawingCon
     drawingCtx.isPatternPresent = pipeline.processFrame(cameraFrame);
 
     // Update a pattern pose:
-    drawingCtx.patternPose2 = pipeline.getPatternLocation();
+    drawingCtx.patternPose = pipeline.getPatternLocation();
 
     // Request redraw of the window:
     drawingCtx.updateWindow();

@@ -30,7 +30,7 @@ public:
 
   
   bool                isPatternPresent;
-  cv::Mat_<float>     patternPose2;
+  cv::Mat_<float>     patternPose;
 
   //! Set the new frame for the background
   void updateBackground(const cv::Mat& frame);
