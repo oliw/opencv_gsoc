@@ -20,8 +20,8 @@ import android.util.Log;
 public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 	private static final String TAG = "GraphicsRenderer";
-
-	private NativeFrameProcessor processor;
+	
+	private Mat patternPose;
 
 	private final float[] mMVPMatrix = new float[16];
 	private final float[] mProjMatrix = new float[16];
@@ -46,27 +46,22 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// is gazing so that the world origin is in the center of the screen.
 		// The up vector is 0,1,0 which means the camera considers the y
 		// direction to be up
-		Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
-		if (processor != null) {
+		if (patternPose != null) {
 			// Set mVMatrix with the object post relative to the camera
 			// The matrix that maps from
 			// camera to marker pose
 
-			if (processor.patternFound()) {
-				Mat pose3D = processor.getPose();
-				// NB. OpenCV stores elements in row-major order
-				// OpenGL expects elements in column-major order
-				pose3D.get(0, 0, mVMatrix);
+			Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+			//patternPose.get(0, 0, mVMatrix);
+			
+			// Calculate the projection and view transformation
+			Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
 
-				// Calculate the projection and view transformation
-				Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
-
-				// Draw each object under the current mMVPMatrix
-				xAxis.draw(mMVPMatrix);
-				yAxis.draw(mMVPMatrix);
-				zAxis.draw(mMVPMatrix);
-			}
+			// Draw each object under the current mMVPMatrix
+			xAxis.draw(mMVPMatrix);
+			yAxis.draw(mMVPMatrix);
+			zAxis.draw(mMVPMatrix);
 		}
 	}
 
@@ -150,8 +145,9 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		}
 	}
 	
-	public void setRenderer(NativeFrameProcessor processor) {
-		this.processor = processor;
+	public void setPatternPose(Mat pose) {
+		this.patternPose = pose;
+		
 	}
 
 }

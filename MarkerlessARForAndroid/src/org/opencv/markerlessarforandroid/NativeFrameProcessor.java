@@ -3,9 +3,11 @@ package org.opencv.markerlessarforandroid;
 import java.util.concurrent.Semaphore;
 import org.opencv.core.Mat;
 
-import android.os.Handler;
+import android.util.Log;
 
 public class NativeFrameProcessor {
+	
+	private static final String TAG = "MarkerlessAR::NativeFrameProcessor";
 
 	protected MainActivity context;
 
@@ -41,8 +43,9 @@ public class NativeFrameProcessor {
 			if (found) {
 				// Compute Pose
 				nativeGetPose(nativeARPipelineObject, pose3D.getNativeObjAddr());
+				context.getRenderer().setPatternPose(pose3D);
 			} else {
-
+				context.getRenderer().setPatternPose(null);
 			}
 			producerSemaphore.release();
 			return found;
@@ -83,19 +86,19 @@ public class NativeFrameProcessor {
 
 	private Thread thread = new Thread() {
 
-		boolean detected = false;
+		boolean previouslyFound = false;
 
 		@Override
 		public void run() {
-			boolean result = false;
+			boolean exit = false;
 			while (!exit) {
-				result = process();
-				if (!detected && result) {
+				process();
+				if (!previouslyFound && found) {
 					context.showMessage("Pattern found");
-				} else if (detected && !result) {
+				} else if (previouslyFound && !found) {
 					context.showMessage("Pattern lost");
 				}
-				detected = result;
+				previouslyFound = found;
 			}
 		}
 	};

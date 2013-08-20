@@ -22,6 +22,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera.Size;
+import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -148,7 +149,6 @@ public class MainActivity extends Activity implements
 	}
 
 	private void initGraphics() {
-		renderer.setRenderer(processor);
 	}
 
 	@Override
@@ -196,6 +196,7 @@ public class MainActivity extends Activity implements
 		renderer = new GraphicsRenderer();
 		mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
 		mGraphicsView.setRenderer(renderer);
+		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); //TODO Improve
 		mGraphicsView.setZOrderMediaOverlay(true);
 
 		messageBox = (TextView) findViewById(R.id.info_message);
@@ -346,5 +347,9 @@ public class MainActivity extends Activity implements
 			}
 		};
 		consoleHandler.post(r);
+	}
+	
+	public GraphicsRenderer getRenderer() {
+		return renderer;
 	}
 }
