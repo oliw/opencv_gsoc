@@ -42,7 +42,7 @@ public abstract class CalibrationResult {
         SharedPreferences settings = activity.getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
         editor = settings.edit();
         editor.putFloat("fx", (float) cameraMatrixArray[0]);
-        editor.putFloat("fx", (float) cameraMatrixArray[4]);
+        editor.putFloat("fy", (float) cameraMatrixArray[4]);
         editor.putFloat("cx", (float) cameraMatrixArray[2]);
         editor.putFloat("cy", (float) cameraMatrixArray[5]);
         editor.commit();

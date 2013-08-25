@@ -36,8 +36,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
 
-public class MainActivity extends Activity implements
-		CvCameraViewListener2 {
+public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 	private static final String TAG = "MarkerlessAR::MainScreen::Activity";
 
@@ -45,6 +44,7 @@ public class MainActivity extends Activity implements
 
 	private NativeFrameProcessor processor;
 	private GraphicsRenderer renderer;
+	private CameraCalibration cameraCalibration;
 
 	private Mat frame;
 
@@ -91,12 +91,20 @@ public class MainActivity extends Activity implements
 	private void initAR() {
 		// Load training images
 		Mat[] trainingImages = loadTrainingImages();
+
+		processor = new NativeFrameProcessor(this, trainingImages,
+				cameraCalibration.getFx(), cameraCalibration.getFy(),
+				cameraCalibration.getCx(), cameraCalibration.getCy());
+
+	}
+
+	private void loadCameraCalibration() {
 		// Get Camera Calibration Settings
 		SharedPreferences settings = getSharedPreferences(
 				CALIBRATION_SETTINGS_FILE, 0);
-		processor = new NativeFrameProcessor(this, trainingImages,
-				settings.getFloat("fx", 0), settings.getFloat("fy", 0),
-				settings.getFloat("cx", 0), settings.getFloat("cy", 0));
+		cameraCalibration = new CameraCalibration(settings.getFloat("fx", 0),
+				settings.getFloat("fy", 0), settings.getFloat("cx", 0),
+				settings.getFloat("cy", 0));
 	}
 
 	private Mat[] loadTrainingImages() {
@@ -149,11 +157,22 @@ public class MainActivity extends Activity implements
 	}
 
 	private void initGraphics() {
+		mGraphicsView.onResume();
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		// Ensure Camera Calibration Settings exist
+		SharedPreferences settings = getSharedPreferences(
+				CALIBRATION_SETTINGS_FILE, 0);
+		if (settings.getAll().size() == 0) {
+			startActivity(new Intent(this, CameraCalibrationActivity.class));
+			return;
+		} else {
+			loadCameraCalibration();
+		}
 
 		setContentView(R.layout.activity_fullscreen);
 
@@ -189,14 +208,16 @@ public class MainActivity extends Activity implements
 
 		topView.setVisibility(SurfaceView.VISIBLE);
 
+		// Prepare the OpenCV CameraView but don't enable it yet
 		mOpenCvCameraView = (CameraView) findViewById(R.id.OpenCVCameraView);
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
-
-		renderer = new GraphicsRenderer();
+		
+		// Prepare and enable the Graphics View
+		renderer = new GraphicsRenderer(cameraCalibration);
 		mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
 		mGraphicsView.setRenderer(renderer);
-		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY); //TODO Improve
+		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 		mGraphicsView.setZOrderMediaOverlay(true);
 
 		messageBox = (TextView) findViewById(R.id.info_message);
@@ -227,14 +248,7 @@ public class MainActivity extends Activity implements
 	@Override
 	public void onResume() {
 		super.onResume();
-		mGraphicsView.onResume();
-		// Ensure Camera Calibration Settings exist
-		SharedPreferences settings = getSharedPreferences(
-				CALIBRATION_SETTINGS_FILE, 0);
-		if (settings.getAll().size() == 0) {
-			startActivity(new Intent(this, CameraCalibrationActivity.class));
-			return;
-		}
+		// Request to load the OpenCV library
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
 				mLoaderCallback);
 	}
@@ -336,19 +350,20 @@ public class MainActivity extends Activity implements
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
+
 	Handler consoleHandler = new Handler();
+
 	public void showMessage(final String msg) {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				messageBox.setText(msg);
-				
+
 			}
 		};
 		consoleHandler.post(r);
 	}
-	
+
 	public GraphicsRenderer getRenderer() {
 		return renderer;
 	}

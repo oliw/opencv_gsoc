@@ -6,6 +6,7 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import android.opengl.GLES20;
@@ -20,7 +21,8 @@ import android.util.Log;
 public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 	private static final String TAG = "GraphicsRenderer";
-	
+
+	private CameraCalibration cameraCalib;
 	private Mat patternPose;
 
 	private final float[] mMVPMatrix = new float[16];
@@ -31,6 +33,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	private Axis xAxis;
 	private Axis yAxis;
 	private Axis zAxis;
+
+	public GraphicsRenderer(CameraCalibration cameraCalib) {
+		this.cameraCalib = cameraCalib;
+	}
 
 	// This is called whenever it’s time to draw a new frame.
 	// Note we don't use GL10 we use the static methods in GLES20 instead
@@ -52,9 +58,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 			// The matrix that maps from
 			// camera to marker pose
 
-			Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
-			//patternPose.get(0, 0, mVMatrix);
-			
+			// Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f,
+			// 0.0f);
+			patternPose.get(0, 0, mVMatrix);
+
 			// Calculate the projection and view transformation
 			Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
 
@@ -80,9 +87,44 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	 */
 	@Override
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
+
+		float nearPlane = 0.01f; // Near clipping distance
+		float farPlane = 100.0f; // Far clipping distance
+
+		// Camera parameters
+		float fx = cameraCalib.getFx(); // Focal length in x axis
+		float fy = cameraCalib.getFy(); // Focal length in y axis
+		float cx = cameraCalib.getCx(); // Camera primary point x
+		float cy = cameraCalib.getCy(); // Camera primary point y
+
+		// Build Projection Matrix in OpenCV Row-major format
+		Mat projectionMatrix = new Mat(4, 4, CvType.CV_32F);
+		projectionMatrix.put(0, 0, -2.0f * fx / width);
+		projectionMatrix.put(1, 0, 0.0f);
+		projectionMatrix.put(2, 0, 0.0f);
+		projectionMatrix.put(3, 0, 0.0f);
+
+		projectionMatrix.put(0, 1, 0.0f);
+		projectionMatrix.put(1, 1, 2.0f * fy / height);
+		projectionMatrix.put(2, 1, 0.0f);
+		projectionMatrix.put(3, 1, 0.0f);
+
+		projectionMatrix.put(0, 2, 2.0f * cx / width - 1.0f);
+		projectionMatrix.put(1, 2, 2.0f * cy / height - 1.0f);
+		projectionMatrix.put(2, 2, -(farPlane + nearPlane)
+				/ (farPlane - nearPlane));
+		projectionMatrix.put(3, 2, -1.0f);
+
+		projectionMatrix.put(0, 3, 0.0f);
+		projectionMatrix.put(1, 3, 0.0f);
+		projectionMatrix.put(2, 3, -2.0f * farPlane * nearPlane
+				/ (farPlane - nearPlane));
+		projectionMatrix.put(3, 3, 0.0f);
+
 		GLES20.glViewport(0, 0, width, height);
-		float ratio = (float) width / height;
-		Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+		
+		Mat projectionMatrixT = projectionMatrix.t();
+		projectionMatrixT.get(0, 0, mProjMatrix);
 	}
 
 	/**
@@ -144,10 +186,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 			throw new RuntimeException(glOperation + ": glError " + error);
 		}
 	}
-	
+
 	public void setPatternPose(Mat pose) {
 		this.patternPose = pose;
-		
+
 	}
 
 }
@@ -252,5 +294,5 @@ class Axis {
 		// Disable vertex array
 		GLES20.glDisableVertexAttribArray(mPositionHandle);
 	}
-	
+
 }
