@@ -14,46 +14,6 @@
 // File includes:
 #include "GeometryTypes.hpp"
 
-Matrix44 Matrix44::getTransposed() const
-{
-  Matrix44 t;
-  
-  for (int i=0;i<4; i++)
-    for (int j=0;j<4;j++)
-      t.mat[i][j] = mat[j][i];
-    
-  return t;
-}
-
-Matrix44 Matrix44::identity()
-{
-  Matrix44 eye;
-  
-  for (int i=0;i<4; i++)
-    for (int j=0;j<4;j++)
-      eye.mat[i][j] = i == j ? 1 : 0;
-  
-  return eye;
-}
-
-Matrix44 Matrix44::getInvertedRT() const
-{
-  Matrix44 t = identity();
-  
-  for (int col=0;col<3; col++)
-  {
-    for (int row=0;row<3;row++)
-    { 
-      // Transpose rotation component (inversion)
-      t.mat[row][col] = mat[col][row];
-    }
-    
-    // Inverse translation component
-    t.mat[3][col] = - mat[3][col];
-  }
-  return t;
-}
-
 Transformation::Transformation()
 : m_rotation(Matx33f::eye())
 , m_translation(Vec3f(0,0,0))

@@ -16,19 +16,6 @@
 
 using namespace cv;
 
-struct Matrix44
-{
-  union
-  {
-    float data[16];
-    float mat[4][4];
-  };
-  
-  Matrix44 getTransposed() const;
-  Matrix44 getInvertedRT() const;
-  static Matrix44 identity();
-};
-
 struct Transformation
 {
   Transformation();

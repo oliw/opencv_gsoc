@@ -51,7 +51,7 @@ private:
   void drawAugmentedScene();
 
   //! Builds the right projection matrix from the camera calibration for AR
-  void buildProjectionMatrix(const CameraCalibration& calibration, int w, int h, Matrix44& result);
+  void buildProjectionMatrix(const CameraCalibration& calibration, int w, int h, Matx44f& result);
   
   //! Draws the coordinate axis 
   void drawCoordinateAxis();
