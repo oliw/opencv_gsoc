@@ -95,7 +95,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		processor = new NativeFrameProcessor(this, trainingImages,
 				cameraCalibration.getFx(), cameraCalibration.getFy(),
 				cameraCalibration.getCx(), cameraCalibration.getCy());
-
 	}
 
 	private void loadCameraCalibration() {
@@ -157,6 +156,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	}
 
 	private void initGraphics() {
+		// Prepare the Graphics View
+		renderer = new GraphicsRenderer(cameraCalibration);
+		mGraphicsView.setRenderer(renderer);
+		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		mGraphicsView.setZOrderMediaOverlay(true);
 		mGraphicsView.onResume();
 	}
 
@@ -213,12 +217,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		
-		// Prepare and enable the Graphics View
-		renderer = new GraphicsRenderer(cameraCalibration);
 		mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
-		mGraphicsView.setRenderer(renderer);
-		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-		mGraphicsView.setZOrderMediaOverlay(true);
 
 		messageBox = (TextView) findViewById(R.id.info_message);
 	}
@@ -308,7 +307,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		frame = inputFrame.rgba();
-		processor.setFrame(frame);
+		Mat pose = processor.processFrame(frame);
+		renderer.setPatternPose(pose);
 		return frame;
 	}
 

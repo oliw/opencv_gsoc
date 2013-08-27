@@ -6,6 +6,7 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
@@ -24,6 +25,7 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 	private CameraCalibration cameraCalib;
 	private Mat patternPose;
+	private boolean patternPresent;
 
 	private final float[] mMVPMatrix = new float[16];
 	private final float[] mProjMatrix = new float[16];
@@ -36,12 +38,14 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 	public GraphicsRenderer(CameraCalibration cameraCalib) {
 		this.cameraCalib = cameraCalib;
+		patternPose = new Mat(4, 4, CvType.CV_32F);
+		patternPresent = false;
 	}
 
 	// This is called whenever it’s time to draw a new frame.
 	// Note we don't use GL10 we use the static methods in GLES20 instead
 	@Override
-	public void onDrawFrame(GL10 unused) {
+	public synchronized void onDrawFrame(GL10 unused) {
 
 		// Clear the background
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -53,23 +57,24 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// The up vector is 0,1,0 which means the camera considers the y
 		// direction to be up
 
-		if (patternPose != null) {
+		if (patternPresent) {
 			// Set mVMatrix with the object post relative to the camera
 			// The matrix that maps from
 			// camera to marker pose
-
-			// Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f,
-			// 0.0f);
+			Matrix.setIdentityM(mVMatrix, 0);
 			patternPose.get(0, 0, mVMatrix);
-
-			// Calculate the projection and view transformation
-			Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
-
-			// Draw each object under the current mMVPMatrix
-			xAxis.draw(mMVPMatrix);
-			yAxis.draw(mMVPMatrix);
-			zAxis.draw(mMVPMatrix);
+		} else {
+			Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 		}
+
+		// Calculate the projection and view transformation
+		Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+
+		// Draw each object under the current mMVPMatrix
+		xAxis.draw(mMVPMatrix);
+		yAxis.draw(mMVPMatrix);
+		zAxis.draw(mMVPMatrix);
+
 	}
 
 	/**
@@ -87,6 +92,8 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	 */
 	@Override
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
+
+		GLES20.glViewport(0, 0, width, height);
 
 		float nearPlane = 0.01f; // Near clipping distance
 		float farPlane = 100.0f; // Far clipping distance
@@ -121,10 +128,9 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 				/ (farPlane - nearPlane));
 		projectionMatrix.put(3, 3, 0.0f);
 
-		GLES20.glViewport(0, 0, width, height);
-		
-		Mat projectionMatrixT = projectionMatrix.t();
-		projectionMatrixT.get(0, 0, mProjMatrix);
+		// Transpose Projection Matrix for OpenGL Column-major format
+		Core.transpose(projectionMatrix, projectionMatrix);
+		projectionMatrix.get(0, 0, mProjMatrix);
 	}
 
 	/**
@@ -138,8 +144,8 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	 */
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		xAxis = new Axis(0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-		yAxis = new Axis(0.0f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f);
+		xAxis = new Axis(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+		yAxis = new Axis(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 		zAxis = new Axis(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
 	}
 
@@ -187,11 +193,16 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		}
 	}
 
-	public void setPatternPose(Mat pose) {
-		this.patternPose = pose;
-
+	/**
+	 * We transpose it to make it Column-Major
+	 * @param pose the pose of the object as a 4x4 Matrix (Row-Major)
+	 */
+	public synchronized void setPatternPose(Mat pose) {
+		patternPresent = pose != null;
+		if (patternPresent) {
+			Core.transpose(pose, patternPose);
+		}
 	}
-
 }
 
 /**
@@ -206,7 +217,7 @@ class Axis {
 	// gl_Position is the final position to render.
 	private final String vertexShaderCode = "uniform mat4 uMVPMatrix;"
 			+ "attribute vec4 vPosition;" + "void main() {"
-			+ "  gl_Position = vPosition * uMVPMatrix;" + "}";
+			+ "  gl_Position = vPosition * uMVPMatrix; " + "}";
 
 	// The Fragment Shader renders face of the shape with color or texture
 	private final String fragmentShaderCode = "precision mediump float;"
@@ -278,7 +289,7 @@ class Axis {
 		// get handle to fragment shader's vColor member
 		mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
 
-		// Set color for drawing the square
+		// Set color
 		GLES20.glUniform4fv(mColorHandle, 1, color, 0);
 
 		// get handle to shape's transformation matrix

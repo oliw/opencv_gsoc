@@ -26,17 +26,24 @@ void PatternTrackingInfo::computePose(const Pattern& pattern, const CameraCalibr
   cv::Mat_<float> rotMat(3,3); 
   cv::Rodrigues(Rvec, rotMat);
 
-  // Combine results into one 4x4 matrix
-  // Since solvePnP finds camera location, w.r.t to marker pose, to get marker pose w.r.t to the camera we invert it.
+  // Since solvePnP finds camera location, w.r.t to marker pose, to get marker pose w.r.t to the camera we invert the results.
+  cv::transpose(rotMat, rotMat);
+  Tvec = -Tvec;
+
+  // Combine results into one ROW MAJOR 4x4 matrix
   pose3d = cv::Mat_<float>::eye(4,4);
-  for (int col=0; col<3; col++)
+  for (int row=0; row<3; row++)
   {
-    for (int row=0; row<3; row++)
-    {
-        pose3d(row,col) = rotMat(col,row);
-    }
-    pose3d(3,col) = -1 * Tvec(col);
+      for (int col=0; col<3; col++)
+      {
+          pose3d(row,col) = rotMat(row, col);
+      }
   }
+  for (int row = 0; row <3; row++)
+  {
+      pose3d(row,3) = Tvec(row);
+  }
+
 }
 
 void PatternTrackingInfo::draw2dContour(cv::Mat& image, cv::Scalar color) const
