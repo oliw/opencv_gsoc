@@ -29,11 +29,6 @@ struct Matrix44
   static Matrix44 identity();
 };
 
-struct Vector4
-{
-  float data[4];
-};
-
 struct Transformation
 {
   Transformation();
