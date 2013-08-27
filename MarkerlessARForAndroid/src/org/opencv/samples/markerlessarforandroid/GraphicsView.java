@@ -1,4 +1,4 @@
-package org.opencv.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid;
 
 import android.content.Context;
 import android.graphics.PixelFormat;

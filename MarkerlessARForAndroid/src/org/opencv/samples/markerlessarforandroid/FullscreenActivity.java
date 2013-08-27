@@ -1,4 +1,4 @@
-package org.opencv.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,8 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.markerlessarforandroid.util.SystemUiHider;
+import org.opencv.markerlessarforandroid.R;
+import org.opencv.samples.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
