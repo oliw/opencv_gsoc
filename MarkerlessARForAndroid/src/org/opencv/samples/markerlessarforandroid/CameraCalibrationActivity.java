@@ -147,7 +147,7 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
             return true;
         case R.id.calibrate:
             final Resources res = getResources();
-            if (mCalibrator.getCornersBufferSize() < 2) {
+            if (mCalibrator.getCornersBufferSize() < 10) {
                 (Toast.makeText(this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
                 return true;
             }
