@@ -1,6 +1,8 @@
 package org.opencv.markerlessarforandroid;
 
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import android.os.Handler;
 
@@ -12,7 +14,10 @@ public class NativeFrameProcessor {
 	
 	boolean wasFoundBefore;
 	
+	private Mat frameLowQualityBuffer;
+	
 	public NativeFrameProcessor(Handler uiFeedback, Mat[] trainingImages, float fx, float fy, float cx, float cy){
+		frameLowQualityBuffer = new Mat(480,640, CvType.CV_8UC4);
 		this.uiFeedback = uiFeedback;
 		wasFoundBefore = false;
 		int nImages = trainingImages.length;
@@ -24,7 +29,10 @@ public class NativeFrameProcessor {
 	}
 	
 	public boolean processFrame(Mat frame) {
-		boolean found = nativeProcess(nativeARPipelineObject, frame.getNativeObjAddr());
+		// Create lower quality version of frame
+		Imgproc.resize(frame, frameLowQualityBuffer, frameLowQualityBuffer.size());
+		// Process lower quality version of frame
+		boolean found = nativeProcess(nativeARPipelineObject, frameLowQualityBuffer.getNativeObjAddr());
 		if (found && !wasFoundBefore) {
 			uiFeedback.sendEmptyMessage(0);
 			wasFoundBefore = found;
