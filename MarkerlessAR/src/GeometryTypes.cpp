@@ -88,20 +88,20 @@ const Vec3f&  Transformation::t() const
   return  m_translation;
 }
 
-Matrix44 Transformation::getMat44() const
+Matx44f Transformation::getMat44() const
 {
-  Matrix44 res = Matrix44::identity();
-  
+  Matx44f res = Matx44f::eye();
+
   for (int col=0;col<3;col++)
   {
     for (int row=0;row<3;row++)
     {
       // Copy rotation component
-      res.mat[row][col] = m_rotation(row,col);
+      res(row,col) = m_rotation(row,col);
     }
     
     // Copy translation component
-    res.mat[3][col] = m_translation[col];
+    res(3,col) = m_translation[col];
   }
   
   return res;

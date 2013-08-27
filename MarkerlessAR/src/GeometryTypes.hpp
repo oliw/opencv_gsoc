@@ -40,7 +40,7 @@ struct Transformation
   const Matx33f& r() const;
   const Vec3f&  t() const;
   
-  Matrix44 getMat44() const;
+  Matx44f getMat44() const;
   
   Transformation getInverted() const;
 private:

@@ -140,8 +140,8 @@ void ARDrawingContext::drawAugmentedScene()
   if (isPatternPresent)
   {
     // Set the pattern transformation
-    Matrix44 glMatrix = patternPose.getMat44();
-    glLoadMatrixf(reinterpret_cast<const GLfloat*>(&glMatrix.data[0]));
+    Matx44f glMatrix = patternPose.getMat44();
+    glLoadMatrixf(reinterpret_cast<const GLfloat*>(&glMatrix.val[0]));
 
     // Render model
     drawCoordinateAxis();
