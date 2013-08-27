@@ -12,7 +12,6 @@
 ////////////////////////////////////////////////////////////////////
 // File includes:
 #include "PatternDetector.hpp"
-#include "DebugHelpers.hpp"
 
 ////////////////////////////////////////////////////////////////////
 // Standard includes:
@@ -227,7 +226,7 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
             info.homography = m_roughHomography;
 
             // Transform contour with rough homography
-            cv::perspectiveTransform(m_pattern.points2d, info.points2d, m_roughHomography;
+            cv::perspectiveTransform(m_pattern.points2d, info.points2d, m_roughHomography);
         }
     }
 

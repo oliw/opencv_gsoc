@@ -31,7 +31,7 @@ void PatternTrackingInfo::computePose(const Pattern& pattern, const CameraCalibr
   {
     for (int row=0; row<3; row++)
     {        
-     pose3d.r().mat[row][col] = rotMat(row,col); // Copy rotation component
+     pose3d.r()(row,col) = rotMat(row,col); // Copy rotation component
     }
     pose3d.t().data[col] = Tvec(col); // Copy translation component
   }

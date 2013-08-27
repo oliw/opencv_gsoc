@@ -12,6 +12,10 @@
 #ifndef Example_MarkerBasedAR_GeometryTypes_hpp
 #define Example_MarkerBasedAR_GeometryTypes_hpp
 
+#include "opencv2/core.hpp"
+
+using namespace cv;
+
 struct Matrix44
 {
   union
@@ -23,18 +27,6 @@ struct Matrix44
   Matrix44 getTransposed() const;
   Matrix44 getInvertedRT() const;
   static Matrix44 identity();
-};
-
-struct Matrix33
-{
-  union
-  {
-    float data[9];
-    float mat[3][3];
-  };
-  
-  static Matrix33 identity();
-  Matrix33 getTransposed() const;
 };
 
 struct Vector4
@@ -53,19 +45,19 @@ struct Vector3
 struct Transformation
 {
   Transformation();
-  Transformation(const Matrix33& r, const Vector3& t);
+  Transformation(const Matx33f& r, const Vector3& t);
   
-  Matrix33& r();
+  Matx33f& r();
   Vector3&  t();
   
-  const Matrix33& r() const;
+  const Matx33f& r() const;
   const Vector3&  t() const;
   
   Matrix44 getMat44() const;
   
   Transformation getInverted() const;
 private:
-  Matrix33 m_rotation;
+  Matx33f m_rotation;
   Vector3  m_translation;
 };
 

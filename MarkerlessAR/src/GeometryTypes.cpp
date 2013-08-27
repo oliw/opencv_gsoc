@@ -54,28 +54,6 @@ Matrix44 Matrix44::getInvertedRT() const
   return t;
 }
 
-Matrix33 Matrix33::identity()
-{
-  Matrix33 eye;
-  
-  for (int i=0;i<3; i++)
-    for (int j=0;j<3;j++)
-      eye.mat[i][j] = i == j ? 1 : 0;
-  
-  return eye;
-}
-
-Matrix33 Matrix33::getTransposed() const
-{
-  Matrix33 t;
-  
-  for (int i=0;i<3; i++)
-    for (int j=0;j<3;j++)
-      t.mat[i][j] = mat[j][i];
-  
-  return t;
-}
-
 Vector3 Vector3::zero()
 {
   Vector3 v = { 0,0,0 };
@@ -89,20 +67,20 @@ Vector3 Vector3::operator-() const
 }
 
 Transformation::Transformation()
-: m_rotation(Matrix33::identity())
+: m_rotation(Matx33f::eye())
 , m_translation(Vector3::zero())
 {
   
 }
 
-Transformation::Transformation(const Matrix33& r, const Vector3& t)
+Transformation::Transformation(const Matx33f& r, const Vector3& t)
 : m_rotation(r)
 , m_translation(t)
 {
   
 }
 
-Matrix33& Transformation::r()
+Matx33f& Transformation::r()
 {
   return m_rotation;
 }
@@ -112,7 +90,7 @@ Vector3&  Transformation::t()
   return  m_translation;
 }
 
-const Matrix33& Transformation::r() const
+const Matx33f& Transformation::r() const
 {
   return m_rotation;
 }
@@ -131,7 +109,7 @@ Matrix44 Transformation::getMat44() const
     for (int row=0;row<3;row++)
     {
       // Copy rotation component
-      res.mat[row][col] = m_rotation.mat[row][col];
+      res.mat[row][col] = m_rotation(row,col);
     }
     
     // Copy translation component
@@ -143,5 +121,5 @@ Matrix44 Transformation::getMat44() const
 
 Transformation Transformation::getInverted() const
 {
-  return Transformation(m_rotation.getTransposed(), -m_translation); 
+    return Transformation(m_rotation.t(), -m_translation);
 }
