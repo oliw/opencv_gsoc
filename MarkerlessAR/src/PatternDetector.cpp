@@ -177,30 +177,21 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
     m_pattern = m_patterns[maxFoundIdx];
 
     // The best fitting pattern has been detected matchedPatternIdx, m_roughHomography, homographyFound, m_pattern has been set
-
-#if _DEBUG
-    cv::showAndSave("Raw matches", getMatchesImage(image, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
-#endif
-
-#if _DEBUG
-    cv::Mat tmp = image.clone();
-#endif
+    // TODO if debug, show the matches between one input frame and pattern
 
     if (homographyFound)
     {
         info.patternIdx = maxFoundIdx;
 
-#if _DEBUG
-        cv::showAndSave("Refined matches using RANSAC", getMatchesImage(image, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
-#endif
+        // TODO if debug, show the matches between one image and ransac
+
         // If homography refinement enabled improve found transformation
         if (enableHomographyRefinement)
         {
             // Warp image using found homography
             cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, m_pattern.size, cv::WARP_INVERSE_MAP | cv::INTER_CUBIC);
-#if _DEBUG
-            cv::showAndSave("Warped image",m_warpedImg);
-#endif
+            // TODO if debug, show the input frame warped according to input frame
+
             // Get refined matches:
             cv::Mat m_newQueryDescriptors;
             std::vector<cv::KeyPoint> warpedKeypoints;
@@ -220,43 +211,28 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
                 refinedMatches,
                 m_refinedHomography);
 
-#if _DEBUG
-            cv::showAndSave("MatchesWithRefinedPose", getMatchesImage(m_warpedImg, m_pattern.grayImg, warpedKeypoints, m_pattern.keypoints, refinedMatches, 100));
-#endif
+            // TODO if debug, show the matches between warped input and pattern
+
             // Get a result homography as result of matrix product of refined and rough homographies:
             info.homography = m_roughHomography * m_refinedHomography;
 
             // Transform contour with rough homography
-#if _DEBUG
-            cv::perspectiveTransform(m_pattern.points2d, info.points2d, m_roughHomography);
-            info.draw2dContour(tmp, CV_RGB(0,200,0));
-#endif
+            // TODO if debug, apply homography to originla points to get new location in scene. Draw contors connecting the points.
 
             // Transform contour with precise homography
             cv::perspectiveTransform(m_pattern.points2d, info.points2d, info.homography);
-#if _DEBUG
-            info.draw2dContour(tmp, CV_RGB(200,0,0));
-#endif
         }
         else
         {
             info.homography = m_roughHomography;
 
             // Transform contour with rough homography
-            cv::perspectiveTransform(m_pattern.points2d, info.points2d, m_roughHomography);
-#if _DEBUG
-            info.draw2dContour(tmp, CV_RGB(0,200,0));
-#endif
+            cv::perspectiveTransform(m_pattern.points2d, info.points2d, m_roughHomography;
         }
     }
 
-#if _DEBUG
-    if (1)
-    {
-        cv::showAndSave("Final matches", getMatchesImage(tmp, m_pattern.frame, m_queryKeypoints, m_pattern.keypoints, m_matches_i, 100));
-    }
-    std::cout << "Features:" << std::setw(4) << m_queryKeypoints.size() << " Matches: " << std::setw(4) << m_matches_i.size() << std::endl;
-#endif
+    // TODO if debug, show final matches
+    // TODO if debug, report the number of features and the number of matches
     return homographyFound;
 }
 

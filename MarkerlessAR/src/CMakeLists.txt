@@ -11,7 +11,6 @@ Pattern.cpp
 Pattern.hpp
 PatternDetector.cpp
 PatternDetector.hpp
-DebugHelpers.hpp
 )
 
 target_link_libraries( markerless_ar_demo ${OpenCV_LIBRARIES} )
