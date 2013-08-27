@@ -4,7 +4,6 @@
 #include <opencv2/features2d/features2d.hpp>
 #include "CameraCalibration.hpp"
 #include "ARPipeline.hpp"
-#include "ARDrawingContext.hpp"
 
 using namespace std;
 using namespace cv;

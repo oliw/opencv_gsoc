@@ -13,7 +13,6 @@
 // File includes:
 #include "PatternDetector.hpp"
 #include "DebugHelpers.hpp"
-#include "tbb/tbb.h"
 
 ////////////////////////////////////////////////////////////////////
 // Standard includes:
@@ -152,7 +151,9 @@ bool PatternDetector::findPattern(const cv::Mat& image, PatternTrackingInfo& inf
     m_matches_homographyFound = std::vector<bool>(m_patterns.size());
     m_matches_homography = std::vector<cv::Mat>(m_patterns.size());
 
-    parallel_for(tbb::blocked_range<size_t>(0,m_patterns.size()), PatternMatch(m_queryDescriptors, *this));
+    //parallel_for(tbb::blocked_range<size_t>(0,m_patterns.size()), PatternMatch(m_queryDescriptors, *this));
+
+    cv::parallel_for_(cv::Range(0, m_patterns.size()), PatternMatch(m_queryDescriptors, *this));
 
     // Process results
     bool homographyFound = false;
