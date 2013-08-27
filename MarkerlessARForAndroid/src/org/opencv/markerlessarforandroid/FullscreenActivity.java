@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.ListIterator;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -37,7 +35,6 @@ import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 
 public class FullscreenActivity extends Activity implements CvCameraViewListener2 {
@@ -329,6 +326,10 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	        	Intent calibrate = new Intent(this, CameraCalibrationActivity.class);
 	        	startActivity(calibrate);
 	        	return true;
+	        case R.id.debug:
+	        	MyApplication app = (MyApplication)getApplication();
+	        	item.setChecked(!app.isDebugMode());
+	        	app.setDebugMode(!app.isDebugMode());
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
