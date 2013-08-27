@@ -34,31 +34,23 @@ struct Vector4
   float data[4];
 };
 
-struct Vector3
-{
-  float data[3];
-  
-  static Vector3 zero();
-  Vector3 operator-() const;
-};
-
 struct Transformation
 {
   Transformation();
-  Transformation(const Matx33f& r, const Vector3& t);
+  Transformation(const Matx33f& r, const Vec3f& t);
   
   Matx33f& r();
-  Vector3&  t();
+  Vec3f&  t();
   
   const Matx33f& r() const;
-  const Vector3&  t() const;
+  const Vec3f&  t() const;
   
   Matrix44 getMat44() const;
   
   Transformation getInverted() const;
 private:
   Matx33f m_rotation;
-  Vector3  m_translation;
+  Vec3f  m_translation;
 };
 
 #endif

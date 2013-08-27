@@ -54,26 +54,14 @@ Matrix44 Matrix44::getInvertedRT() const
   return t;
 }
 
-Vector3 Vector3::zero()
-{
-  Vector3 v = { 0,0,0 };
-  return v;
-}
-
-Vector3 Vector3::operator-() const
-{
-  Vector3 v = { -data[0],-data[1],-data[2] };
-  return v;
-}
-
 Transformation::Transformation()
 : m_rotation(Matx33f::eye())
-, m_translation(Vector3::zero())
+, m_translation(Vec3f(0,0,0))
 {
   
 }
 
-Transformation::Transformation(const Matx33f& r, const Vector3& t)
+Transformation::Transformation(const Matx33f& r, const Vec3f& t)
 : m_rotation(r)
 , m_translation(t)
 {
@@ -85,7 +73,7 @@ Matx33f& Transformation::r()
   return m_rotation;
 }
 
-Vector3&  Transformation::t()
+Vec3f&  Transformation::t()
 {
   return  m_translation;
 }
@@ -95,7 +83,7 @@ const Matx33f& Transformation::r() const
   return m_rotation;
 }
 
-const Vector3&  Transformation::t() const
+const Vec3f&  Transformation::t() const
 {
   return  m_translation;
 }
@@ -113,7 +101,7 @@ Matrix44 Transformation::getMat44() const
     }
     
     // Copy translation component
-    res.mat[3][col] = m_translation.data[col];
+    res.mat[3][col] = m_translation[col];
   }
   
   return res;
