@@ -1,4 +1,4 @@
-package org.opencv.markerlessarforandroid.util;
+package org.opencv.samples.markerlessarforandroid.util;
 
 import android.app.Activity;
 import android.os.Build;

@@ -1,4 +1,6 @@
-package org.opencv.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid;
+
+import org.opencv.markerlessarforandroid.R;
 
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
