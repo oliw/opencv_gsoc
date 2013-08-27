@@ -36,14 +36,13 @@ extern "C" {
 		delete (ARPipeline *) object;
 	}
 
-	JNIEXPORT jint JNICALL
+	JNIEXPORT jboolean JNICALL
 	Java_org_opencv_markerlessarforandroid_NativeFrameProcessor_nativeProcess
 	(JNIEnv *env, jobject obj, jlong object, jlong frame)
 	{
 		ARPipeline *pipeline = (ARPipeline *)object;
 		Mat *mat = (Mat *)frame;
 
-		bool isFound = pipeline->processFrame(*mat);
-		return isFound ? 1 : 0;
+		return pipeline->processFrame(*mat);
 	}
 }

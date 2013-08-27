@@ -280,7 +280,7 @@ public class FullscreenActivity extends Activity implements CvCameraViewListener
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		frame = inputFrame.rgba();
-		processor.setFrame(frame);
+		processor.processFrame(frame);
 		return frame;
 	}
 	
