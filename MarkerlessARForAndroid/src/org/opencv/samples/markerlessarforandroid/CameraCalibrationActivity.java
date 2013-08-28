@@ -1,4 +1,4 @@
-package org.opencv.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid;
 
 // This is based on "Camera calibration With OpenCV" tutorial:
 // http://docs.opencv.org/doc/tutorials/calib3d/camera_calibration/camera_calibration.html
@@ -22,6 +22,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.markerlessarforandroid.R;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -146,7 +147,7 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
             return true;
         case R.id.calibrate:
             final Resources res = getResources();
-            if (mCalibrator.getCornersBufferSize() < 2) {
+            if (mCalibrator.getCornersBufferSize() < 10) {
                 (Toast.makeText(this, res.getString(R.string.more_samples), Toast.LENGTH_SHORT)).show();
                 return true;
             }

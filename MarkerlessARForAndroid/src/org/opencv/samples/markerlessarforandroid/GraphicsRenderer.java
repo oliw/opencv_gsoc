@@ -1,4 +1,4 @@
-package org.opencv.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -99,10 +99,14 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		float farPlane = 100.0f; // Far clipping distance
 
 		// Camera parameters
-		float fx = cameraCalib.getFx(); // Focal length in x axis
-		float fy = cameraCalib.getFy(); // Focal length in y axis
-		float cx = cameraCalib.getCx(); // Camera primary point x
-		float cy = cameraCalib.getCy(); // Camera primary point y
+//		float fx = cameraCalib.getFx(); // Focal length in x axis
+//		float fy = cameraCalib.getFy(); // Focal length in y axis
+//		float cx = cameraCalib.getCx(); // Camera primary point x
+//		float cy = cameraCalib.getCy(); // Camera primary point y
+		float fx = 0;
+		float fy = 0;
+		float cx = 0;
+		float cy = 0;
 
 		// Build Projection Matrix in OpenCV Row-major format
 		Mat projectionMatrix = new Mat(4, 4, CvType.CV_32F);

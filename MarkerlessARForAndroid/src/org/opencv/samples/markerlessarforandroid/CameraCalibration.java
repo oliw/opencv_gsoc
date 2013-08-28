@@ -1,4 +1,4 @@
-package org.opencv.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid;
 
 /**
  * Each camera lens has unique intrinsic parameters such as focal length, principle point and lens distortion model.

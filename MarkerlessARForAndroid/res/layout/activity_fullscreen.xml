@@ -7,7 +7,7 @@
     android:id="@+id/MainViewGroup"
     tools:context=".MainActivity" >
 
-    <org.opencv.markerlessarforandroid.CameraView
+    <org.opencv.samples.markerlessarforandroid.CameraView
         android:id="@+id/OpenCVCameraView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -15,7 +15,7 @@
         opencv:camera_id="any"
         opencv:show_fps="true" />
 
-    <org.opencv.markerlessarforandroid.GraphicsView
+    <org.opencv.samples.markerlessarforandroid.GraphicsView
         android:id="@+id/OpenGLGraphicsView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

@@ -4,7 +4,6 @@
 #include <opencv2/features2d/features2d.hpp>
 #include "CameraCalibration.hpp"
 #include "ARPipeline.hpp"
-#include "ARDrawingContext.hpp"
 
 using namespace std;
 using namespace cv;
@@ -12,7 +11,7 @@ using namespace cv;
 extern "C" {
 
 	JNIEXPORT jlong JNICALL
-	Java_org_opencv_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject
+	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject
 	(JNIEnv *env, jobject obj, jlongArray images, jint imgCount, jfloat fx, jfloat fy, jfloat cx, jfloat cy)
 	{
 		CameraCalibration callib(fx, fy, cx, cy);
@@ -31,13 +30,13 @@ extern "C" {
 	}
 
 	JNIEXPORT void JNICALL
-	Java_org_opencv_markerlessarforandroid_NativeFrameProcessor_nativeDestroyObject
+	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeDestroyObject
 	(JNIEnv *env, jobject obj, jlong object) {
 		delete (ARPipeline *) object;
 	}
 
 	JNIEXPORT jboolean JNICALL
-	Java_org_opencv_markerlessarforandroid_NativeFrameProcessor_nativeProcess
+	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeProcess
 	(JNIEnv *env, jobject obj, jlong object, jlong frame)
 	{
 		ARPipeline *pipeline = (ARPipeline *)object;
