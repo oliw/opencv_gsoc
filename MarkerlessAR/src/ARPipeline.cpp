@@ -30,7 +30,7 @@ bool ARPipeline::processFrame(const cv::Mat& inputFrame)
   return patternFound;
 }
 
-const cv::Mat_<float>& ARPipeline::getPatternLocation() const
+const Transformation& ARPipeline::getPatternLocation() const
 {
   return m_patternInfo.pose3d;
 }

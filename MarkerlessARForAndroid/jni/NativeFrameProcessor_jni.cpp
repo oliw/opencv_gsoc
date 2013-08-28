@@ -50,10 +50,10 @@ extern "C" {
 	Java_org_opencv_markerlessarforandroid_NativeFrameProcessor_nativeGetPose
 	(JNIEnv *env, jobject obj, jlong object, jlong pose)
 	{
-		ARPipeline *pipeline = (ARPipeline *)object;
-		Mat *pose3D = (Mat *)pose;
-
-		Mat patternLoc = pipeline->getPatternLocation();
-		memcpy(pose3D->data, patternLoc.data, patternLoc.step * patternLoc.rows);
+//		ARPipeline *pipeline = (ARPipeline *)object;
+//		Mat *pose3D = (Mat *)pose;
+//
+//		Mat patternLoc = pipeline->getPatternLocation();
+//		memcpy(pose3D->data, patternLoc.data, patternLoc.step * patternLoc.rows);
 	}
 }

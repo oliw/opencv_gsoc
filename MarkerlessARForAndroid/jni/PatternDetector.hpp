@@ -15,7 +15,6 @@
 ////////////////////////////////////////////////////////////////////
 // File includes:
 #include "Pattern.hpp"
-#include "tbb/tbb.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -96,15 +95,15 @@ private:
     cv::Ptr<cv::DescriptorExtractor> m_extractor;
     std::vector<cv::Ptr<cv::DescriptorMatcher> > m_matchers;
 
-    class PatternMatch {
+    class PatternMatch : public cv::ParallelLoopBody {
         cv::Mat queryDescriptors;
         PatternDetector& parent;
 
     public:
         PatternMatch(cv::Mat& queryDescriptors, PatternDetector& parent) : queryDescriptors(queryDescriptors), parent(parent) {}
 
-        void operator() (const tbb::blocked_range<size_t>& r) const {
-            for (size_t i=r.begin(); i!= r.end(); i++) {
+        void operator() (const cv::Range& range) const {
+            for (int i = range.start; i != range.end; i++) {
                 parent.findPatternMatch(queryDescriptors, i);
             }
         }

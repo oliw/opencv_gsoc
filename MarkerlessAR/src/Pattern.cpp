@@ -20,30 +20,24 @@ void PatternTrackingInfo::computePose(const Pattern& pattern, const CameraCalibr
   cv::Mat raux,taux;
 
   cv::solvePnP(pattern.points3d, points2d, calibration.getIntrinsic(), calibration.getDistorsion(),raux,taux);
-  raux.convertTo(Rvec, CV_32F);
-  taux.convertTo(Tvec, CV_32F);
+  raux.convertTo(Rvec,CV_32F);
+  taux.convertTo(Tvec ,CV_32F);
 
   cv::Mat_<float> rotMat(3,3); 
   cv::Rodrigues(Rvec, rotMat);
 
-  // Since solvePnP finds camera location, w.r.t to marker pose, to get marker pose w.r.t to the camera we invert the results.
-  cv::transpose(rotMat, rotMat);
-  Tvec = -Tvec;
-
-  // Combine results into one ROW MAJOR 4x4 matrix
-  pose3d = cv::Mat_<float>::eye(4,4);
-  for (int row=0; row<3; row++)
+  // Copy to transformation matrix
+  for (int col=0; col<3; col++)
   {
-      for (int col=0; col<3; col++)
-      {
-          pose3d(row,col) = rotMat(row, col);
-      }
-  }
-  for (int row = 0; row <3; row++)
-  {
-      pose3d(row,3) = Tvec(row);
+    for (int row=0; row<3; row++)
+    {        
+     pose3d.r()(row,col) = rotMat(row,col); // Copy rotation component
+    }
+    pose3d.t()[col] = Tvec(col); // Copy translation component
   }
 
+  // Since solvePnP finds camera location, w.r.t to marker pose, to get marker pose w.r.t to the camera we invert it.
+  pose3d = pose3d.getInverted();
 }
 
 void PatternTrackingInfo::draw2dContour(cv::Mat& image, cv::Scalar color) const

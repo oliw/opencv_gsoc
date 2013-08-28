@@ -9,31 +9,30 @@
 *   http://www.packtpub.com/cool-projects-with-opencv/book
 *****************************************************************************/
 
-#ifndef ARPIPELINE_HPP
-#define ARPIPELINE_HPP
+#ifndef Example_MarkerBasedAR_GeometryTypes_hpp
+#define Example_MarkerBasedAR_GeometryTypes_hpp
 
-////////////////////////////////////////////////////////////////////
-// File includes:
-#include "PatternDetector.hpp"
-#include "CameraCalibration.hpp"
-#include "GeometryTypes.hpp"
+#include <opencv2/opencv.hpp>
 
-class ARPipeline
+using namespace cv;
+
+struct Transformation
 {
-public:
-  ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCalibration& calibration);
-
-  bool processFrame(const cv::Mat& inputFrame);
-
-  const Transformation& getPatternLocation() const;
-
-  PatternDetector     m_patternDetector;
+  Transformation();
+  Transformation(const Matx33f& r, const Vec3f& t);
+  
+  Matx33f& r();
+  Vec3f&  t();
+  
+  const Matx33f& r() const;
+  const Vec3f&  t() const;
+  
+  Matx44f getMat44() const;
+  
+  Transformation getInverted() const;
 private:
-
-private:
-  CameraCalibration   m_calibration;
-  std::vector<Pattern>m_patterns;
-  PatternTrackingInfo m_patternInfo;
+  Matx33f m_rotation;
+  Vec3f  m_translation;
 };
 
 #endif
