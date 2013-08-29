@@ -42,7 +42,13 @@ public class NativeFrameProcessor {
 		}
 		return found;
 	}
-		
+	
+	public Mat getPose() {
+		Mat pose = new Mat(4,4,CvType.CV_32F);
+		nativeGetPose(nativeARPipelineObject, pose.getNativeObjAddr());
+		return pose;
+	}
+			
 	public void release() {
 		nativeDestroyObject(nativeARPipelineObject);
 		nativeARPipelineObject = 0;
@@ -50,5 +56,6 @@ public class NativeFrameProcessor {
 	
 	private static native long nativeCreateObject(long[] images, int nImages, float fx, float fy, float cx, float cy);
 	private static native boolean nativeProcess(long object, long frame); 
+	private static native void nativeGetPose(long object, long pose);
 	private static native void nativeDestroyObject(long object);
 }

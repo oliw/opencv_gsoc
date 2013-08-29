@@ -99,14 +99,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		float farPlane = 100.0f; // Far clipping distance
 
 		// Camera parameters
-//		float fx = cameraCalib.getFx(); // Focal length in x axis
-//		float fy = cameraCalib.getFy(); // Focal length in y axis
-//		float cx = cameraCalib.getCx(); // Camera primary point x
-//		float cy = cameraCalib.getCy(); // Camera primary point y
-		float fx = 0;
-		float fy = 0;
-		float cx = 0;
-		float cy = 0;
+		float fx = cameraCalib.getFx(); // Focal length in x axis
+		float fy = cameraCalib.getFy(); // Focal length in y axis
+		float cx = cameraCalib.getCx(); // Camera primary point x
+		float cy = cameraCalib.getCy(); // Camera primary point y
 
 		// Build Projection Matrix in OpenCV Row-major format
 		Mat projectionMatrix = new Mat(4, 4, CvType.CV_32F);
@@ -197,15 +193,14 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		}
 	}
 
-	/**
-	 * We transpose it to make it Column-Major
-	 * @param pose the pose of the object as a 4x4 Matrix (Row-Major)
-	 */
 	public synchronized void setPatternPose(Mat pose) {
 		patternPresent = pose != null;
-		if (patternPresent) {
-			Core.transpose(pose, patternPose);
-		}
+		patternPose = pose;
+	}
+	
+	public void clearPose() {
+		patternPresent = false;
+		patternPose = null;
 	}
 }
 
