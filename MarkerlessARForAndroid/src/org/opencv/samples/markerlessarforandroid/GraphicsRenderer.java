@@ -61,7 +61,6 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 			// Set mVMatrix with the object post relative to the camera
 			// The matrix that maps from
 			// camera to marker pose
-			Matrix.setIdentityM(mVMatrix, 0);
 			patternPose.get(0, 0, mVMatrix);
 		} else {
 			Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
@@ -131,6 +130,9 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// Transpose Projection Matrix for OpenGL Column-major format
 		Core.transpose(projectionMatrix, projectionMatrix);
 		projectionMatrix.get(0, 0, mProjMatrix);
+		GLES20.glViewport(0, 0, width, height);
+		float ratio = (float) width / height;
+		Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 	}
 
 	/**
@@ -216,7 +218,7 @@ class Axis {
 	// gl_Position is the final position to render.
 	private final String vertexShaderCode = "uniform mat4 uMVPMatrix;"
 			+ "attribute vec4 vPosition;" + "void main() {"
-			+ "  gl_Position = vPosition * uMVPMatrix; " + "}";
+			+ "  gl_Position = uMVPMatrix * vPosition; " + "}";
 
 	// The Fragment Shader renders face of the shape with color or texture
 	private final String fragmentShaderCode = "precision mediump float;"
