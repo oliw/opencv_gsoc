@@ -146,6 +146,8 @@ void ARDrawingContext::drawAugmentedScene()
     // Render model
     drawCoordinateAxis();
     drawCubeModel();
+  } else {
+      drawCoordinateAxis();
   }
 }
 

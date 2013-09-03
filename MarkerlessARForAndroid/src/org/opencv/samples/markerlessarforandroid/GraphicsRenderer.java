@@ -88,6 +88,16 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	 * This method calculates the projection matrix for the scene which adjusts
 	 * object coordinates so that unit objects are indeed unit size when
 	 * rendered.
+	 * 
+	 * The projection matrix is the final matrix which is applied to a
+	 * renderable point. Afterwards, the point is now in normalized device
+	 * coordinates. The bottom left corner will be (-1,-1) and the top right
+	 * will be (1,1). OpenGL does the job of mapping these onto the surface's
+	 * viewport.
+	 * 
+	 * Our projection matrix is a perspective projection which makes distant
+	 * objects appear smaller.
+	 * 
 	 */
 	@Override
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
@@ -103,9 +113,10 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		float cx = cameraCalib.getCx(); // Camera primary point x
 		float cy = cameraCalib.getCy(); // Camera primary point y
 
+		// Source: http://opencv.willowgarage.com/wiki/Posit
 		// Build Projection Matrix in OpenCV Row-major format
-		Mat projectionMatrix = new Mat(4, 4, CvType.CV_32F);
-		projectionMatrix.put(0, 0, -2.0f * fx / width);
+		Mat projectionMatrix = new Mat(4, 4, CvType.CV_32FC1);
+		projectionMatrix.put(0, 0, 2.0f * fx / width);
 		projectionMatrix.put(1, 0, 0.0f);
 		projectionMatrix.put(2, 0, 0.0f);
 		projectionMatrix.put(3, 0, 0.0f);
@@ -115,8 +126,8 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		projectionMatrix.put(2, 1, 0.0f);
 		projectionMatrix.put(3, 1, 0.0f);
 
-		projectionMatrix.put(0, 2, 2.0f * cx / width - 1.0f);
-		projectionMatrix.put(1, 2, 2.0f * cy / height - 1.0f);
+		projectionMatrix.put(0, 2, 2.0f * (cx / width) - 1.0f);
+		projectionMatrix.put(1, 2, 2.0f * (cy / height) - 1.0f);
 		projectionMatrix.put(2, 2, -(farPlane + nearPlane)
 				/ (farPlane - nearPlane));
 		projectionMatrix.put(3, 2, -1.0f);
@@ -130,9 +141,6 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// Transpose Projection Matrix for OpenGL Column-major format
 		Core.transpose(projectionMatrix, projectionMatrix);
 		projectionMatrix.get(0, 0, mProjMatrix);
-		GLES20.glViewport(0, 0, width, height);
-		float ratio = (float) width / height;
-		Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
 	}
 
 	/**
@@ -199,7 +207,7 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		patternPresent = pose != null;
 		patternPose = pose;
 	}
-	
+
 	public void clearPose() {
 		patternPresent = false;
 		patternPose = null;
