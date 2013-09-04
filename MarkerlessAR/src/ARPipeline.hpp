@@ -29,12 +29,13 @@ public:
   const Transformation& getPatternLocation() const;
 
   PatternDetector     m_patternDetector;
-private:
 
 private:
   CameraCalibration   m_calibration;
   std::vector<Pattern>m_patterns;
   PatternTrackingInfo m_patternInfo;
+
+  void savePatterns() const;
 };
 
 #endif

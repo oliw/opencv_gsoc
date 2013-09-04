@@ -18,6 +18,7 @@ ARPipeline::ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCa
 {
   m_patternDetector.buildPatternsFromImages(patternImages, m_patterns);
   m_patternDetector.train(m_patterns);
+  savePatterns();
 }
 
 ARPipeline::ARPipeline(const std::vector<std::string>& patternYamlPaths, const CameraCalibration& calibration)
@@ -41,3 +42,18 @@ const Transformation& ARPipeline::getPatternLocation() const
 {
   return m_patternInfo.pose3d;
 }
+
+void ARPipeline::savePatterns() const
+{
+    for (int i = 0; i < m_patterns.size(); i++) {
+        std::stringstream ss;
+        ss << i << ".yml";
+        FileStorage fs(ss.str(), FileStorage::WRITE);
+        Pattern pattern = m_patterns[i];
+        fs << "frame" << pattern.frame;
+        fs << "keypoints" << pattern.keypoints;
+        fs << "descriptors" << pattern.descriptors;
+        fs.release();
+    }
+}
+
