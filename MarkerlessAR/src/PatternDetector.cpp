@@ -89,6 +89,46 @@ void PatternDetector::buildPatternsFromImages(const std::vector<cv::Mat>& images
     }
 }
 
+void PatternDetector::buildPatternsFromYAML(const std::vector<std::string>& files, std::vector<Pattern>& patterns) const
+{
+    patterns.clear();
+    for (int i = 0; i < files.size(); i++) {
+        FileStorage fs(files[i], FileStorage::READ);
+        Pattern pattern;
+        fs["frame"] >> pattern.frame;
+        pattern.size = cv::Size(pattern.frame.cols, pattern.frame.rows);
+        PatternDetector::getGray(pattern.frame, pattern.grayImg);
+
+        // Build 2d and 3d contours (3d contour lie in XY plane since it's planar)
+        pattern.points2d.resize(4);
+        pattern.points3d.resize(4);
+
+        // Image dimensions
+        const float w = pattern.frame.cols;
+        const float h = pattern.frame.rows;
+
+        // Normalized dimensions:
+        const float maxSize = std::max(w,h);
+        const float unitW = w / maxSize;
+        const float unitH = h / maxSize;
+
+        pattern.points2d[0] = cv::Point2f(0,0);
+        pattern.points2d[1] = cv::Point2f(w,0);
+        pattern.points2d[2] = cv::Point2f(w,h);
+        pattern.points2d[3] = cv::Point2f(0,h);
+
+        pattern.points3d[0] = cv::Point3f(-unitW, -unitH, 0);
+        pattern.points3d[1] = cv::Point3f( unitW, -unitH, 0);
+        pattern.points3d[2] = cv::Point3f( unitW,  unitH, 0);
+        pattern.points3d[3] = cv::Point3f(-unitW,  unitH, 0);
+
+        fs["keypoints"] >> pattern.keypoints;
+        fs["descriptors"] >> pattern.descriptors;
+        fs.release();
+        patterns.push_back(pattern);
+    }
+}
+
 void PatternDetector::findPatternMatch(const cv::Mat queryDescriptors, int patternIdx) {
     std::vector<cv::DMatch> matches;
     matches.clear();

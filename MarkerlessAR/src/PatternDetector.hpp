@@ -41,6 +41,7 @@ public:
     * This function finds the feature points and extract descriptors for them.
     */
     void buildPatternsFromImages(const std::vector<cv::Mat>& images, std::vector<Pattern>& patterns) const;
+    void buildPatternsFromYAML(const std::vector<std::string>& files, std::vector<Pattern>& patterns) const;
 
     /**
     * Tries to find a @pattern object on given @image. 
