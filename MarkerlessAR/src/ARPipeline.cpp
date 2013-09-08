@@ -50,7 +50,8 @@ void ARPipeline::savePatterns() const
         ss << i << ".yml";
         FileStorage fs(ss.str(), FileStorage::WRITE);
         Pattern pattern = m_patterns[i];
-        fs << "frame" << pattern.frame;
+        fs << "width" << pattern.size.width;
+        fs << "height" << pattern.size.height;
         fs << "keypoints" << pattern.keypoints;
         fs << "descriptors" << pattern.descriptors;
         fs.release();

@@ -51,11 +51,11 @@ void PatternDetector::buildPatternsFromImages(
 	patterns.clear();
 	for (int i = 0; i < images.size(); i++) {
 		cv::Mat image = images[i].clone();
+		cv::Mat grayImage;
 		Pattern pattern;
-		// Store original image in pattern structure
+
 		pattern.size = cv::Size(image.cols, image.rows);
-		pattern.frame = image.clone();
-		getGray(image, pattern.grayImg);
+		getGray(image, grayImage);
 
 		// Build 2d and 3d contours (3d contour lie in XY plane since it's planar)
 		pattern.points2d.resize(4);
@@ -80,7 +80,7 @@ void PatternDetector::buildPatternsFromImages(
 		pattern.points3d[2] = cv::Point3f(unitW, unitH, 0);
 		pattern.points3d[3] = cv::Point3f(-unitW, unitH, 0);
 
-		extractFeatures(pattern.grayImg, pattern.keypoints,
+		extractFeatures(grayImage, pattern.keypoints,
 				pattern.descriptors);
 		patterns.push_back(pattern);
 	}
@@ -93,17 +93,18 @@ void PatternDetector::buildPatternsFromYAML(
 	for (int i = 0; i < files.size(); i++) {
 		FileStorage fs(files[i], FileStorage::READ);
 		Pattern pattern;
-		fs["frame"] >> pattern.frame;
-		pattern.size = cv::Size(pattern.frame.cols, pattern.frame.rows);
-		PatternDetector::getGray(pattern.frame, pattern.grayImg);
+
+		// Image dimensions
+		float w;
+		float h;
+		fs["width"] >> w;
+		fs["height"] >> h;
+
+		pattern.size = cv::Size(w, h);
 
 		// Build 2d and 3d contours (3d contour lie in XY plane since it's planar)
 		pattern.points2d.resize(4);
 		pattern.points3d.resize(4);
-
-		// Image dimensions
-		const float w = pattern.frame.cols;
-		const float h = pattern.frame.rows;
 
 		// Normalized dimensions:
 		const float maxSize = std::max(w, h);
@@ -120,7 +121,7 @@ void PatternDetector::buildPatternsFromYAML(
 		pattern.points3d[2] = cv::Point3f(unitW, unitH, 0);
 		pattern.points3d[3] = cv::Point3f(-unitW, unitH, 0);
 
-		// Android Bug fs["keypoints"] >> std::vector<cv::Keypoints> doesn't work
+		// TODO Android Bug fs["keypoints"] >> std::vector<cv::Keypoints> doesn't work
 		FileNode node = fs["keypoints"];
 		cv::read(node, pattern.keypoints);
 		fs["descriptors"] >> pattern.descriptors;
