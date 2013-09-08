@@ -3,6 +3,7 @@ package org.opencv.samples.markerlessarforandroid;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Calendar;
 import java.util.List;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.Utils;
@@ -17,6 +18,7 @@ import org.opencv.samples.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -24,8 +26,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -67,6 +71,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	private GraphicsView mGraphicsView;
 	private TextView messageBox;
 
+	private boolean openCVLoaded = false;
+	private boolean processorReady = false;
+
 	/**
 	 * Dynamically load OpenCV library and additional required libraries
 	 */
@@ -76,61 +83,65 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			switch (status) {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "OpenCV loaded successfully");
+				openCVLoaded = true;
+				// Load native library after(!) OpenCV initialization
 				System.loadLibrary("ar-jni");
-				initAR();
-				initCamera();
-				initGraphics();
-			}
+				mOpenCvCameraView.enableView();
+				new InitArTask().execute();
+				renderer.start();
 				break;
+			}
 			default: {
 				super.onManagerConnected(status);
-			}
 				break;
+			}
 			}
 		}
 	};
 
-	private void initAR() {
-		// Load training images
-		AssetManager assetManager = getAssets();
-		String imgFolder = "training-images";
-		String[] imgs = new String[0];
-		try {
-			imgs = assetManager.list(imgFolder);
-		} catch (IOException e) {
-		}
-		Mat[] trainingImages = new Mat[imgs.length];
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-		InputStream istr;
-		Bitmap bmp = null;
-		for (int i = 0; i < imgs.length; i++) {
+	private class InitArTask extends AsyncTask<Void, Integer, Boolean> {
+
+		@Override
+		protected Boolean doInBackground(Void... unused) {
+			// Load training images
+			AssetManager assetManager = getAssets();
+			String imgFolder = "training-images";
+			String[] imgs = new String[0];
 			try {
-				istr = assetManager.open(imgFolder + File.separator + imgs[i]);
-				bmp = BitmapFactory.decodeStream(istr, null, opts);
-				// Convert to Mat
-				Mat tmp = new Mat(bmp.getWidth(), bmp.getHeight(),
-						CvType.CV_8UC1);
-				Utils.bitmapToMat(bmp, tmp);
-				trainingImages[i] = tmp;
+				imgs = assetManager.list(imgFolder);
 			} catch (IOException e) {
-				Log.e(TAG, "Could not load a training image from assets");
 			}
+			Mat[] trainingImages = new Mat[imgs.length];
+			BitmapFactory.Options opts = new BitmapFactory.Options();
+			opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+			InputStream istr;
+			Bitmap bmp = null;
+			for (int i = 0; i < imgs.length; i++) {
+				try {
+					istr = assetManager.open(imgFolder + File.separator
+							+ imgs[i]);
+					bmp = BitmapFactory.decodeStream(istr, null, opts);
+					// Convert to Mat
+					Mat tmp = new Mat(bmp.getWidth(), bmp.getHeight(),
+							CvType.CV_8UC1);
+					Utils.bitmapToMat(bmp, tmp);
+					trainingImages[i] = tmp;
+				} catch (IOException e) {
+					Log.e(TAG, "Could not load a training image from assets");
+				}
+			}
+			// Get Camera Calibration Settings
+			SharedPreferences settings = getSharedPreferences(
+					CALIBRATION_SETTINGS_FILE, 0);
+			processor = new NativeFrameProcessor(msgBoxHandler, trainingImages,
+					settings.getFloat("fx", 0), settings.getFloat("fy", 0),
+					settings.getFloat("cx", 0), settings.getFloat("cy", 0));
+			processorReady = true;
+			return true;
 		}
-		// Get Camera Calibration Settings
-		SharedPreferences settings = getSharedPreferences(
-				CALIBRATION_SETTINGS_FILE, 0);
-		processor = new NativeFrameProcessor(msgBoxHandler, trainingImages,
-				settings.getFloat("fx", 0), settings.getFloat("fy", 0),
-				settings.getFloat("cx", 0), settings.getFloat("cy", 0)); // TODO
-																			// Update
-																			// for
-																			// android
 	}
 
 	private void initCamera() {
-		// Initialise camera
-		mOpenCvCameraView.enableView();
 
 		// Build menu item of camera resolutions
 		// mResolutionMenu.clear();
@@ -148,22 +159,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		// }
 	}
 
-	private void initGraphics() {
-		renderer = new GraphicsRenderer(cameraCalibration);
-		mGraphicsView.setRenderer(renderer);
-		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-		mGraphicsView.setZOrderMediaOverlay(true);
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		// Ensure Camera Calibration Settings exist
-		SharedPreferences settings = getSharedPreferences(
-				CALIBRATION_SETTINGS_FILE, 0);
+		SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
 		if (settings.getAll().size() == 0) {
 			startActivity(new Intent(this, CameraCalibrationActivity.class));
+			finish();
 			return;
 		} else {
 			loadCameraCalibration();
@@ -207,7 +210,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 
+		renderer = new GraphicsRenderer(cameraCalibration);
 		mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
+		mGraphicsView.setRenderer(renderer);
+		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		mGraphicsView.setZOrderMediaOverlay(true);
 
 		messageBox = (TextView) findViewById(R.id.info_message);
 	}
@@ -222,15 +229,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	}
 
 	@Override
-	public void onStart() {
-		super.onStart();
-	}
-
-	@Override
 	public void onPause() {
 		super.onPause();
 		if (mOpenCvCameraView != null)
 			mOpenCvCameraView.disableView();
+		if (renderer != null)
+			renderer.stop();
+		processorReady = false;
+		openCVLoaded = false;
 	}
 
 	@Override
@@ -250,6 +256,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				CALIBRATION_SETTINGS_FILE, 0);
 		if (settings.getAll().size() == 0) {
 			startActivity(new Intent(this, CameraCalibrationActivity.class));
+			finish();
 			return;
 		}
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this,
@@ -311,11 +318,17 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		frame = inputFrame.rgba();
-		if (processor.processFrame(frame)) {
-			Mat pose = processor.getPose();
-			renderer.setPatternPose(pose);
-		} else {
-			renderer.clearPose();
+		if (processorReady) {
+			if (processor.processFrame(frame)) {
+				Mat pose = processor.getPose();
+				if (openCVLoaded) {
+					renderer.setPatternPose(pose);
+				}
+			} else {
+				if (openCVLoaded) {
+					renderer.clearPose();
+				}
+			}
 		}
 		return frame;
 	}

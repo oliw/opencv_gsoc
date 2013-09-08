@@ -12,7 +12,7 @@ public class NativeFrameProcessor {
 		
 	Handler uiFeedback;
 	
-	boolean wasFoundBefore;
+	private boolean wasFoundBefore;
 	
 	private Mat frameLowQualityBuffer;
 	

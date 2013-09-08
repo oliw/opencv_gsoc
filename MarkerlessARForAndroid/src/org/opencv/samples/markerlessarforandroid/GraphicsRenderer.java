@@ -27,6 +27,8 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	private Mat patternPose;
 	private boolean patternPresent;
 
+	private boolean started;
+
 	private final float[] mMVPMatrix = new float[16];
 	private final float[] mProjMatrix = new float[16];
 	private final float[] mVMatrix = new float[16];
@@ -38,8 +40,32 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 	public GraphicsRenderer(CameraCalibration cameraCalib) {
 		this.cameraCalib = cameraCalib;
+	}
+
+	public void start() {
 		patternPose = new Mat(4, 4, CvType.CV_32F);
 		patternPresent = false;
+		started = true;
+	}
+
+	public void stop() {
+		started = false;
+	}
+
+	/**
+	 * This method is called when the surface is first created. It will also be
+	 * called if we lose our surface context and it is later recreated by the
+	 * system.
+	 * 
+	 * This method instantiates the three items we which to be drawn on this
+	 * surface; three axes each a different color and each starting at the
+	 * origin and pointing outwards.
+	 */
+	@Override
+	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		xAxis = new Axis(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+		yAxis = new Axis(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		zAxis = new Axis(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
 	}
 
 	// This is called whenever it’s time to draw a new frame.
@@ -50,30 +76,34 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 		// Clear the background
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-		// Set the camera to be at
-		// The eye point of the camera is at 0,0,3 in the world coordinates
-		// The position of the reference point is 0,0,0. This means the camera
-		// is gazing so that the world origin is in the center of the screen.
-		// The up vector is 0,1,0 which means the camera considers the y
-		// direction to be up
+		if (started) {
+			// Set the camera to be at
+			// The eye point of the camera is at 0,0,3 in the world coordinates
+			// The position of the reference point is 0,0,0. This means the
+			// camera
+			// is gazing so that the world origin is in the center of the
+			// screen.
+			// The up vector is 0,1,0 which means the camera considers the y
+			// direction to be up
 
-		if (patternPresent) {
-			// Set mVMatrix with the object post relative to the camera
-			// The matrix that maps from
-			// camera to marker pose
-			patternPose.get(0, 0, mVMatrix);
-		} else {
-			Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+			if (patternPresent) {
+				// Set mVMatrix with the object post relative to the camera
+				// The matrix that maps from
+				// camera to marker pose
+				patternPose.get(0, 0, mVMatrix);
+			} else {
+				Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f,
+						0.0f);
+			}
+
+			// Calculate the projection and view transformation
+			Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+
+			// Draw each object under the current mMVPMatrix
+			xAxis.draw(mMVPMatrix);
+			yAxis.draw(mMVPMatrix);
+			zAxis.draw(mMVPMatrix);
 		}
-
-		// Calculate the projection and view transformation
-		Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
-
-		// Draw each object under the current mMVPMatrix
-		xAxis.draw(mMVPMatrix);
-		yAxis.draw(mMVPMatrix);
-		zAxis.draw(mMVPMatrix);
-
 	}
 
 	/**
@@ -104,59 +134,45 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 
 		GLES20.glViewport(0, 0, width, height);
 
-		float nearPlane = 0.01f; // Near clipping distance
-		float farPlane = 100.0f; // Far clipping distance
+		if (started) {
+			float nearPlane = 0.01f; // Near clipping distance
+			float farPlane = 100.0f; // Far clipping distance
 
-		// Camera parameters
-		float fx = cameraCalib.getFx(); // Focal length in x axis
-		float fy = cameraCalib.getFy(); // Focal length in y axis
-		float cx = cameraCalib.getCx(); // Camera primary point x
-		float cy = cameraCalib.getCy(); // Camera primary point y
+			// Camera parameters
+			float fx = cameraCalib.getFx(); // Focal length in x axis
+			float fy = cameraCalib.getFy(); // Focal length in y axis
+			float cx = cameraCalib.getCx(); // Camera primary point x
+			float cy = cameraCalib.getCy(); // Camera primary point y
 
-		// Source: http://opencv.willowgarage.com/wiki/Posit
-		// Build Projection Matrix in OpenCV Row-major format
-		Mat projectionMatrix = new Mat(4, 4, CvType.CV_32FC1);
-		projectionMatrix.put(0, 0, 2.0f * fx / width);
-		projectionMatrix.put(1, 0, 0.0f);
-		projectionMatrix.put(2, 0, 0.0f);
-		projectionMatrix.put(3, 0, 0.0f);
+			// Source: http://opencv.willowgarage.com/wiki/Posit
+			// Build Projection Matrix in OpenCV Row-major format
+			Mat projectionMatrix = new Mat(4, 4, CvType.CV_32FC1);
+			projectionMatrix.put(0, 0, 2.0f * fx / width);
+			projectionMatrix.put(1, 0, 0.0f);
+			projectionMatrix.put(2, 0, 0.0f);
+			projectionMatrix.put(3, 0, 0.0f);
 
-		projectionMatrix.put(0, 1, 0.0f);
-		projectionMatrix.put(1, 1, 2.0f * fy / height);
-		projectionMatrix.put(2, 1, 0.0f);
-		projectionMatrix.put(3, 1, 0.0f);
+			projectionMatrix.put(0, 1, 0.0f);
+			projectionMatrix.put(1, 1, 2.0f * fy / height);
+			projectionMatrix.put(2, 1, 0.0f);
+			projectionMatrix.put(3, 1, 0.0f);
 
-		projectionMatrix.put(0, 2, 2.0f * (cx / width) - 1.0f);
-		projectionMatrix.put(1, 2, 2.0f * (cy / height) - 1.0f);
-		projectionMatrix.put(2, 2, -(farPlane + nearPlane)
-				/ (farPlane - nearPlane));
-		projectionMatrix.put(3, 2, -1.0f);
+			projectionMatrix.put(0, 2, 2.0f * (cx / width) - 1.0f);
+			projectionMatrix.put(1, 2, 2.0f * (cy / height) - 1.0f);
+			projectionMatrix.put(2, 2, -(farPlane + nearPlane)
+					/ (farPlane - nearPlane));
+			projectionMatrix.put(3, 2, -1.0f);
 
-		projectionMatrix.put(0, 3, 0.0f);
-		projectionMatrix.put(1, 3, 0.0f);
-		projectionMatrix.put(2, 3, -2.0f * farPlane * nearPlane
-				/ (farPlane - nearPlane));
-		projectionMatrix.put(3, 3, 0.0f);
+			projectionMatrix.put(0, 3, 0.0f);
+			projectionMatrix.put(1, 3, 0.0f);
+			projectionMatrix.put(2, 3, -2.0f * farPlane * nearPlane
+					/ (farPlane - nearPlane));
+			projectionMatrix.put(3, 3, 0.0f);
 
-		// Transpose Projection Matrix for OpenGL Column-major format
-		Core.transpose(projectionMatrix, projectionMatrix);
-		projectionMatrix.get(0, 0, mProjMatrix);
-	}
-
-	/**
-	 * This method is called when the surface is first created. It will also be
-	 * called if we lose our surface context and it is later recreated by the
-	 * system.
-	 * 
-	 * This method instantiates the three items we which to be drawn on this
-	 * surface; three axes each a different color and each starting at the
-	 * origin and pointing outwards.
-	 */
-	@Override
-	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		xAxis = new Axis(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
-		yAxis = new Axis(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-		zAxis = new Axis(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f);
+			// Transpose Projection Matrix for OpenGL Column-major format
+			Core.transpose(projectionMatrix, projectionMatrix);
+			projectionMatrix.get(0, 0, mProjMatrix);
+		}
 	}
 
 	// Loads and compiles shaders

@@ -23,9 +23,4 @@ public class GraphicsView extends GLSurfaceView {
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
 	}
 	
-	public void setRenderer(GraphicsRenderer renderer) {
-		super.setRenderer(renderer);
-		setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-	}
-
 }
