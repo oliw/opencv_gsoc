@@ -18,7 +18,7 @@ public class CameraCalibrationHelpActivity extends Activity {
 		setContentView(R.layout.activity_camera_calibration_help);
 		
 		text = (TextView) findViewById(R.id.calibration_help_text);
-		text.setText(Html.fromHtml(getString(R.string.hello_world)));
+		text.setText(Html.fromHtml(getString(R.string.about_the_app)));
 	}
 
 

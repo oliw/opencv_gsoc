@@ -25,7 +25,7 @@
     <string name="undistorted">Undistorted</string>
     <string name="help">Help</string>
     <string name="title_activity_camera_calibration_help">About Camera Callibration</string>
-    <string name="hello_world">
+    <string name="about_the_app">
         <![CDATA[
         <h1>Using the Camera Calibration</h1>
         <p>First, print off the 11x4 OpenCV asymmetric circles\' grid from http://docs.opencv.org/_downloads/acircles_pattern.png</p>
