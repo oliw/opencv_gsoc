@@ -32,6 +32,7 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.VoicemailContract;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -41,6 +42,7 @@ import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
@@ -84,11 +86,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "OpenCV loaded successfully");
 				openCVLoaded = true;
-				// Load native library after(!) OpenCV initialization
-				System.loadLibrary("ar-jni");
-				mOpenCvCameraView.enableView();
-				new InitArTask().execute();
-				renderer.start();
+				System.loadLibrary("ar-jni");	// Load native library after(!) OpenCV initialization
+				mOpenCvCameraView.enableView();	// Enable Camera View
+				new InitArTask().execute();		// Initialise Frame Processor
+				renderer.start();				// Enable Renderer
 				break;
 			}
 			default: {
@@ -99,10 +100,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		}
 	};
 
-	private class InitArTask extends AsyncTask<Void, Integer, Boolean> {
+	private class InitArTask extends AsyncTask<Void, Integer, Void> {
 
 		@Override
-		protected Boolean doInBackground(Void... unused) {
+		protected Void doInBackground(Void... unused) {
 			// Load training images
 			AssetManager assetManager = getAssets();
 			String imgFolder = "training-images";
@@ -137,7 +138,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 					settings.getFloat("fx", 0), settings.getFloat("fy", 0),
 					settings.getFloat("cx", 0), settings.getFloat("cy", 0));
 			processorReady = true;
-			return true;
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			Toast.makeText(MainActivity.this, "Processor Started", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -166,7 +172,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
 		if (settings.getAll().size() == 0) {
 			startActivity(new Intent(this, CameraCalibrationActivity.class));
-			finish();
+			finish();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 			return;
 		} else {
 			loadCameraCalibration();
