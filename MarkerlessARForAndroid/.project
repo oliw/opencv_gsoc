@@ -46,4 +46,56 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>jni/ARPipeline.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/ARPipeline.cpp</locationURI>
+		</link>
+		<link>
+			<name>jni/ARPipeline.hpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/ARPipeline.hpp</locationURI>
+		</link>
+		<link>
+			<name>jni/CameraCalibration.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/CameraCalibration.cpp</locationURI>
+		</link>
+		<link>
+			<name>jni/CameraCalibration.hpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/CameraCalibration.hpp</locationURI>
+		</link>
+		<link>
+			<name>jni/GeometryTypes.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/GeometryTypes.cpp</locationURI>
+		</link>
+		<link>
+			<name>jni/GeometryTypes.hpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/GeometryTypes.hpp</locationURI>
+		</link>
+		<link>
+			<name>jni/Pattern.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/Pattern.cpp</locationURI>
+		</link>
+		<link>
+			<name>jni/Pattern.hpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/Pattern.hpp</locationURI>
+		</link>
+		<link>
+			<name>jni/PatternDetector.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/PatternDetector.cpp</locationURI>
+		</link>
+		<link>
+			<name>jni/PatternDetector.hpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/MarkerlessAR/src/PatternDetector.hpp</locationURI>
+		</link>
+	</linkedResources>
 </projectDescription>

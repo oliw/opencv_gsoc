@@ -12,7 +12,7 @@
 #ifndef Example_MarkerBasedAR_GeometryTypes_hpp
 #define Example_MarkerBasedAR_GeometryTypes_hpp
 
-#include "opencv2/core.hpp"
+#include <opencv2/opencv.hpp>
 
 using namespace cv;
 
