@@ -21,12 +21,12 @@ ARPipeline::ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCa
   savePatterns();
 }
 
-//ARPipeline::ARPipeline(const std::vector<std::string>& patternYamlPaths, const CameraCalibration& calibration)
-//    : m_calibration(calibration)
-//{
-//    m_patternDetector.buildPatternsFromYAML(patternYamlPaths, m_patterns);
-//    m_patternDetector.train(m_patterns);
-//}
+ARPipeline::ARPipeline(const std::vector<std::string>& patternYamlPaths, const CameraCalibration& calibration)
+    : m_calibration(calibration)
+{
+    m_patternDetector.buildPatternsFromYAML(patternYamlPaths, m_patterns);
+    m_patternDetector.train(m_patterns);
+}
 
 bool ARPipeline::processFrame(const cv::Mat& inputFrame)
 {

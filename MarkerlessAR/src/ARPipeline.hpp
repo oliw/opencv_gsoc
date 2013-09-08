@@ -22,7 +22,7 @@ class ARPipeline
 {
 public:
   ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCalibration& calibration);
-  //ARPipeline(const std::vector<std::string>& patternYamlPaths, const CameraCalibration& calibration);
+  ARPipeline(const std::vector<std::string>& patternYamlPaths, const CameraCalibration& calibration);
 
   bool processFrame(const cv::Mat& inputFrame);
 
