@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.List;
+import java.util.ListIterator;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.Utils;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -86,10 +88,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "OpenCV loaded successfully");
 				openCVLoaded = true;
-				System.loadLibrary("ar-jni");	// Load native library after(!) OpenCV initialization
-				mOpenCvCameraView.enableView();	// Enable Camera View
-				new InitArTask().execute();		// Initialise Frame Processor
-				renderer.start();				// Enable Renderer
+				System.loadLibrary("ar-jni"); // Load native library after(!)
+												// OpenCV initialization
+				mOpenCvCameraView.enableView(); // Enable Camera View
+				new InitArTask().execute(); // Initialise Frame Processor
+				renderer.start(); // Enable Renderer
 				break;
 			}
 			default: {
@@ -140,39 +143,23 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			processorReady = true;
 			return null;
 		}
-		
+
 		@Override
 		protected void onPostExecute(Void result) {
-			Toast.makeText(MainActivity.this, "Processor Started", Toast.LENGTH_SHORT).show();
+			Toast.makeText(MainActivity.this, "Processor Started",
+					Toast.LENGTH_SHORT).show();
 		}
-	}
-
-	private void initCamera() {
-
-		// Build menu item of camera resolutions
-		// mResolutionMenu.clear();
-		// mResolutionList = mOpenCvCameraView.getResolutionList();
-		// mResolutionMenuItems = new MenuItem[mResolutionList.size()];
-		//
-		// ListIterator<Size> resolutionItr = mResolutionList.listIterator();
-		// int idx = 0;
-		// while(resolutionItr.hasNext()) {
-		// Size element = resolutionItr.next();
-		// mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
-		// Integer.valueOf(element.width).toString() + "x" +
-		// Integer.valueOf(element.height).toString());
-		// idx++;
-		// }
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// Ensure Camera Calibration Settings exist
-		SharedPreferences settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
+		SharedPreferences settings = getSharedPreferences(
+				CALIBRATION_SETTINGS_FILE, 0);
 		if (settings.getAll().size() == 0) {
 			startActivity(new Intent(this, CameraCalibrationActivity.class));
-			finish();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+			finish();
 			return;
 		} else {
 			loadCameraCalibration();
@@ -357,6 +344,19 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 		// Programatically add list of available resolutions
 		mResolutionMenu = menu.addSubMenu("Resolution");
+		// Build menu item of camera resolutions
+		mResolutionList = mOpenCvCameraView.getResolutionList();
+		mResolutionMenuItems = new MenuItem[mResolutionList.size()];
+
+		ListIterator<Size> resolutionItr = mResolutionList.listIterator();
+		int idx = 0;
+		while (resolutionItr.hasNext()) {
+			Size element = resolutionItr.next();
+			mResolutionMenuItems[idx] = mResolutionMenu.add(1, idx, Menu.NONE,
+					Integer.valueOf(element.width).toString() + "x"
+							+ Integer.valueOf(element.height).toString());
+			idx++;
+		}
 		return true;
 	}
 
