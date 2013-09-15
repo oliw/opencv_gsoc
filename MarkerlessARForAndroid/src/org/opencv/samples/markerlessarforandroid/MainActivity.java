@@ -397,6 +397,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			MainApplication app = (MainApplication) getApplication();
 			item.setChecked(!app.isDebugMode());
 			app.setDebugMode(!app.isDebugMode());
+			return true;
 		case R.id.exit:
 			finish();
 		default:
