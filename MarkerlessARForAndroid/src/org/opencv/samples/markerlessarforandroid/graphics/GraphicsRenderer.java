@@ -92,18 +92,15 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 				// The matrix that maps from
 				// camera to marker pose
 				patternPose.get(0, 0, mVMatrix);
-			} else {
-				Matrix.setLookAtM(mVMatrix, 0, 0, 0, 3f, 0f, 0f, 0f, 0f, 1.0f,
-						0.0f);
+				
+				// Calculate the projection and view transformation
+				Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+
+				// Draw each object under the current mMVPMatrix
+				xAxis.draw(mMVPMatrix);
+				yAxis.draw(mMVPMatrix);
+				zAxis.draw(mMVPMatrix);
 			}
-
-			// Calculate the projection and view transformation
-			Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
-
-			// Draw each object under the current mMVPMatrix
-			xAxis.draw(mMVPMatrix);
-			yAxis.draw(mMVPMatrix);
-			zAxis.draw(mMVPMatrix);
 		}
 	}
 
