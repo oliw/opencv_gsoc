@@ -3,13 +3,13 @@ package org.opencv.samples.markerlessarforandroid;
 import android.app.Application;
 import android.util.Log;
 
-public class MyApplication extends Application {
+public class MainApplication extends Application {
 	
-	private static final String  TAG = "MarkerlessAR::MyApplication";
+	private static final String  TAG = "MarkerlessAR::MainApplication";
 
 	boolean debugMode;
 	
-	public MyApplication() {
+	public MainApplication() {
 		super();
 		debugMode = false;
 	}

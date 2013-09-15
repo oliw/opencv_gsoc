@@ -389,7 +389,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			startActivity(calibrate);
 			return true;
 		case R.id.debug:
-			MyApplication app = (MyApplication) getApplication();
+			MainApplication app = (MainApplication) getApplication();
 			item.setChecked(!app.isDebugMode());
 			app.setDebugMode(!app.isDebugMode());
 		case R.id.exit:
