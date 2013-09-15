@@ -8,6 +8,11 @@ import android.text.Html;
 import android.view.Menu;
 import android.widget.TextView;
 
+/**
+ * This activity displays an about screen about the application. The information is presented as formatted HTML text.
+ * @author Oliver Wilkie
+ *
+ */
 public class AboutActivity extends Activity {
 
 	@Override

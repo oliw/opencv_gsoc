@@ -51,6 +51,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * The Main Activity for the application.
+ * @author Oliver Wilkie
+ *
+ */
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 	private static final String TAG = "MarkerlessAR::MainScreen::Activity";
