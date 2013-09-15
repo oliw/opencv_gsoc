@@ -1,4 +1,4 @@
-package org.opencv.samples.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid.calibration;
 
 import org.opencv.core.Mat;
 

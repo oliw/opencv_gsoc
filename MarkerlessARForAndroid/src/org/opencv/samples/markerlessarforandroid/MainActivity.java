@@ -16,6 +16,10 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.markerlessarforandroid.R;
+import org.opencv.samples.markerlessarforandroid.calibration.CameraCalibration;
+import org.opencv.samples.markerlessarforandroid.calibration.CameraCalibrationActivity;
+import org.opencv.samples.markerlessarforandroid.graphics.GraphicsRenderer;
+import org.opencv.samples.markerlessarforandroid.graphics.GraphicsView;
 import org.opencv.samples.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;

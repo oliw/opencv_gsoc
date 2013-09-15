@@ -1,4 +1,4 @@
-package org.opencv.samples.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid.graphics;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,6 +9,7 @@ import javax.microedition.khronos.opengles.GL10;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.samples.markerlessarforandroid.calibration.CameraCalibration;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;

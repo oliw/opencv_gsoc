@@ -1,4 +1,4 @@
-package org.opencv.samples.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid.calibration;
 
 import java.util.ArrayList;
 import java.util.List;

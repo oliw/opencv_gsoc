@@ -32,6 +32,7 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreate
 
 	ARPipeline* p = new ARPipeline(arr, callib);
 #ifdef ANDROID_NDK_PROFILER_ENABLED
+	setenv("CPUPROFILE_FREQUENCY", "500", 1); /* Change to 500 interrupts per second */
 	monstartup("libar-jni.so");
 #endif
 	return (long) p;

@@ -1,6 +1,6 @@
 # There is one Android.mk per module
 ANDROID_LOCAL_PATH := $(call my-dir)
-ANDROID_NDK_PROFILER_ENABLED := true
+ANDROID_NDK_PROFILER_ENABLED := false
 
 # OpenCV For Android
 include ~/NVPACK/OpenCV-2.4.5-Tegra-sdk/sdk/native/jni/OpenCV-tegra3.mk 

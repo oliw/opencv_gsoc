@@ -1,4 +1,4 @@
-package org.opencv.samples.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid.calibration;
 
 // This is based on "Camera calibration With OpenCV" tutorial:
 // http://docs.opencv.org/doc/tutorials/calib3d/camera_calibration/camera_calibration.html

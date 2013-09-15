@@ -34,12 +34,12 @@
             android:label="@string/title_activity_about" >
         </activity>
         <activity
-            android:name="org.opencv.samples.markerlessarforandroid.CameraCalibrationActivity"
+            android:name="org.opencv.samples.markerlessarforandroid.calibration.CameraCalibrationActivity"
             android:label="@string/title_activity_camera_calibration" 
             android:screenOrientation="landscape" >
         </activity>
         <activity
-            android:name="org.opencv.samples.markerlessarforandroid.CameraCalibrationHelpActivity"
+            android:name="org.opencv.samples.markerlessarforandroid.calibration.CameraCalibrationHelpActivity"
             android:label="@string/title_activity_camera_calibration_help" >
         </activity>
     </application>

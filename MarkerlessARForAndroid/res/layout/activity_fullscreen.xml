@@ -15,7 +15,7 @@
         opencv:camera_id="any"
         opencv:show_fps="true" />
 
-    <org.opencv.samples.markerlessarforandroid.GraphicsView
+    <org.opencv.samples.markerlessarforandroid.graphics.GraphicsView
         android:id="@+id/OpenGLGraphicsView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
