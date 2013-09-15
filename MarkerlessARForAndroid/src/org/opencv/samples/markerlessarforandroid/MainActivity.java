@@ -380,10 +380,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 		// Handle all other items selection
 		switch (item.getItemId()) {
-		case R.id.settings:
-			Intent intent = new Intent(this, SettingsActivity.class);
-			startActivity(intent);
-			return true;
 		case R.id.about:
 			Intent about = new Intent(this, AboutActivity.class);
 			startActivity(about);
