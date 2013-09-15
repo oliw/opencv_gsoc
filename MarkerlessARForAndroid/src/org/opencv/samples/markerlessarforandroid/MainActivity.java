@@ -354,9 +354,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.app_menu, menu);
-
 		// Programatically add list of available resolutions
-		mResolutionMenu = menu.addSubMenu("Resolution");
+		mResolutionMenu = menu.getItem(2).getSubMenu();
 		// Build menu item of camera resolutions
 		mResolutionList = mOpenCvCameraView.getResolutionList();
 		mResolutionMenuItems = new MenuItem[mResolutionList.size()];
