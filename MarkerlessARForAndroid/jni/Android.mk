@@ -3,7 +3,7 @@ ANDROID_LOCAL_PATH := $(call my-dir)
 ANDROID_NDK_PROFILER_ENABLED := false
 
 # OpenCV For Android
-include ~/NVPACK/OpenCV-2.4.5-Tegra-sdk/sdk/native/jni/OpenCV-tegra3.mk 
+include $(OPENCV4AROOT)/sdk/native/jni/OpenCV-tegra3.mk
 
 LOCAL_PATH := $(ANDROID_LOCAL_PATH)
 
@@ -20,5 +20,5 @@ include $(BUILD_SHARED_LIBRARY)
 
 $(call import-module, MarkerlessAR)
 ifeq ($(ANDROID_NDK_PROFILER_ENABLED),true)
-$(call import-module, android-ndk-profiler)
+$(call import-module, android-ndk-profiler) 
 endif
