@@ -146,33 +146,28 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 			float cy = cameraCalib.getCy(); // Camera primary point y
 
 			// Source: http://opencv.willowgarage.com/wiki/Posit
-			// Build Projection Matrix in OpenCV Row-major format
-			Mat projectionMatrix = new Mat(4, 4, CvType.CV_32FC1);
-			projectionMatrix.put(0, 0, 2.0f * fx / width);
-			projectionMatrix.put(1, 0, 0.0f);
-			projectionMatrix.put(2, 0, 0.0f);
-			projectionMatrix.put(3, 0, 0.0f);
+			// Build Projection Matrix in OpenGL Column-major format
+			mProjMatrix[0] = - 2.0f * fx / width;
+			mProjMatrix[1] = 0.0f;
+			mProjMatrix[2] = 0.0f;
+			mProjMatrix[3] = 0.0f;
 
-			projectionMatrix.put(0, 1, 0.0f);
-			projectionMatrix.put(1, 1, 2.0f * fy / height);
-			projectionMatrix.put(2, 1, 0.0f);
-			projectionMatrix.put(3, 1, 0.0f);
+			mProjMatrix[4] = 0.0f;
+			mProjMatrix[5] = 2.0f * fy / height;
+			mProjMatrix[6] = 0.0f;
+			mProjMatrix[7] = 0.0f;
 
-			projectionMatrix.put(0, 2, 2.0f * (cx / width) - 1.0f);
-			projectionMatrix.put(1, 2, 2.0f * (cy / height) - 1.0f);
-			projectionMatrix.put(2, 2, -(farPlane + nearPlane)
-					/ (farPlane - nearPlane));
-			projectionMatrix.put(3, 2, -1.0f);
+			mProjMatrix[8] = 2.0f * (cx / width) - 1.0f;
+			mProjMatrix[9] = 2.0f * (cy / height) - 1.0f;
+			mProjMatrix[10] = -(farPlane + nearPlane)
+					/ (farPlane - nearPlane);
+			mProjMatrix[11] = -1.0f;
 
-			projectionMatrix.put(0, 3, 0.0f);
-			projectionMatrix.put(1, 3, 0.0f);
-			projectionMatrix.put(2, 3, -2.0f * farPlane * nearPlane
-					/ (farPlane - nearPlane));
-			projectionMatrix.put(3, 3, 0.0f);
-
-			// Transpose Projection Matrix for OpenGL Column-major format
-			Core.transpose(projectionMatrix, projectionMatrix);
-			projectionMatrix.get(0, 0, mProjMatrix);
+			mProjMatrix[12] = 0.0f;
+			mProjMatrix[13] = 0.0f;
+			mProjMatrix[14] = -2.0f * farPlane * nearPlane
+					/ (farPlane - nearPlane);
+			mProjMatrix[15] = 0.0f;
 		}
 	}
 
