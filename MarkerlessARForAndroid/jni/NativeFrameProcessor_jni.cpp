@@ -5,54 +5,62 @@
 #include "CameraCalibration.hpp"
 #include "ARPipeline.hpp"
 
+#ifdef ANDROID_NDK_PROFILER_ENABLED
+#include <prof.h>
+#endif
+
 using namespace std;
 using namespace cv;
 
 extern "C" {
 
-	JNIEXPORT jlong JNICALL
-	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject
-	(JNIEnv *env, jobject obj, jlongArray images, jint imgCount, jfloat fx, jfloat fy, jfloat cx, jfloat cy)
-	{
-		CameraCalibration callib(fx, fy, cx, cy);
+JNIEXPORT jlong JNICALL
+Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject(
+		JNIEnv *env, jobject obj, jlongArray images, jint imgCount, jfloat fx,
+		jfloat fy, jfloat cx, jfloat cy) {
+	CameraCalibration callib(fx, fy, cx, cy);
 
-		jlong imagesBuff[imgCount];
-		env->GetLongArrayRegion(images, 0, imgCount, imagesBuff);
+	jlong imagesBuff[imgCount];
+	env->GetLongArrayRegion(images, 0, imgCount, imagesBuff);
 
-		vector<Mat> arr(imgCount);
-		for (int i = 0; i < imgCount; i++) {
-			Mat *image;
-			image = (Mat *)imagesBuff[i];
-			arr[i] = *image;
-		}
-
-		return (long) new ARPipeline(arr, callib);
+	vector<Mat> arr(imgCount);
+	for (int i = 0; i < imgCount; i++) {
+		Mat *image;
+		image = (Mat *) imagesBuff[i];
+		arr[i] = *image;
 	}
 
-	JNIEXPORT void JNICALL
-	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeDestroyObject
-	(JNIEnv *env, jobject obj, jlong object) {
-		delete (ARPipeline *) object;
-	}
+	ARPipeline* p = new ARPipeline(arr, callib);
+#ifdef ANDROID_NDK_PROFILER_ENABLED
+	monstartup("libar-jni.so");
+#endif
+	return (long) p;
+}
 
-	JNIEXPORT jboolean JNICALL
-	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeProcess
-	(JNIEnv *env, jobject obj, jlong object, jlong frame)
-	{
-		ARPipeline *pipeline = (ARPipeline *)object;
-		Mat *mat = (Mat *)frame;
+JNIEXPORT void JNICALL
+Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeDestroyObject(
+		JNIEnv *env, jobject obj, jlong object) {
+	delete (ARPipeline *) object;
+#ifdef ANDROID_NDK_PROFILER_ENABLED
+	moncleanup();
+#endif
+}
 
-		return pipeline->processFrame(*mat);
-	}
+JNIEXPORT jboolean JNICALL
+Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeProcess(
+		JNIEnv *env, jobject obj, jlong object, jlong frame) {
+	ARPipeline *pipeline = (ARPipeline *) object;
+	Mat *mat = (Mat *) frame;
+	return pipeline->processFrame(*mat);
+}
 
-	JNIEXPORT void JNICALL
-	Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeGetPose
-	(JNIEnv *env, jobject obj, jlong object, jlong pose)
-	{
-		ARPipeline *pipeline = (ARPipeline *)object;
-		Mat *pose3D = (Mat *)pose;
+JNIEXPORT void JNICALL
+Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeGetPose(
+		JNIEnv *env, jobject obj, jlong object, jlong pose) {
+	ARPipeline *pipeline = (ARPipeline *) object;
+	Mat *pose3D = (Mat *) pose;
 
-		Matx44f patternLoc = pipeline->getPatternLocation().getMat44();
-		*pose3D = Mat(patternLoc);
-	}
+	Matx44f patternLoc = pipeline->getPatternLocation().getMat44();
+	*pose3D = Mat(patternLoc);
+}
 }

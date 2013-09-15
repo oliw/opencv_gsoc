@@ -5,6 +5,7 @@ import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import android.os.Handler;
+import android.util.Log;
 
 public class NativeFrameProcessor {
 	

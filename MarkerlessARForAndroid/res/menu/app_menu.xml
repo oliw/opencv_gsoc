@@ -19,5 +19,8 @@
         android:icon="@android:drawable/ic_menu_preferences"
         android:title="Debug"
         android:titleCondensed="Debug"/>
+    <item
+        android:id="@+id/exit"
+        android:title="Exit"/>
 
 </menu>

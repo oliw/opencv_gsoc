@@ -36,6 +36,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.VoicemailContract;
 import android.util.Log;
+import android.util.MonthDisplayHelper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -91,7 +92,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 				System.loadLibrary("ar-jni"); // Load native library after(!)
 												// OpenCV initialization
 				mOpenCvCameraView.enableView(); // Enable Camera View
-				new InitArTask().execute(); // Initialise Frame Processor
+				if (processor == null) {
+					new BuildProcessorTask().execute(); // Initialise Frame Processor
+				}
 				renderer.start(); // Enable Renderer
 				break;
 			}
@@ -103,7 +106,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		}
 	};
 
-	private class InitArTask extends AsyncTask<Void, Integer, Void> {
+	private class BuildProcessorTask extends AsyncTask<Void, Integer, Void> {
 
 		@Override
 		protected Void doInBackground(Void... unused) {
@@ -239,6 +242,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			mOpenCvCameraView.disableView();
 		if (processor != null)
 			processor.release();
+		processor = null;
 	}
 
 	@Override
@@ -388,6 +392,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			MyApplication app = (MyApplication) getApplication();
 			item.setChecked(!app.isDebugMode());
 			app.setDebugMode(!app.isDebugMode());
+		case R.id.exit:
+			finish();
 		default:
 			return super.onOptionsItemSelected(item);
 		}
