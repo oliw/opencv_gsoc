@@ -18,7 +18,9 @@ LOCAL_STATIC_LIBRARIES += android-ndk-profiler
 endif
 include $(BUILD_SHARED_LIBRARY)
 
+$(call import-add-path, $(ANDROID_LOCAL_PATH)/../..)
 $(call import-module, MarkerlessAR)
+
 ifeq ($(ANDROID_NDK_PROFILER_ENABLED),true)
 $(call import-module, android-ndk-profiler) 
 endif
