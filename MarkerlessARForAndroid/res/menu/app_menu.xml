@@ -16,6 +16,14 @@
         </menu>
     </item>
     <item
+        android:id="@+id/importPatterns"
+        android:title="Import Patterns">
+    </item>    
+    <item
+        android:id="@+id/export"
+        android:title="Export Patterns">
+    </item>
+    <item
         android:id="@+id/debug"
         android:checkable="true"
         android:icon="@android:drawable/ic_menu_preferences"

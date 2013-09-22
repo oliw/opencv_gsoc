@@ -14,6 +14,7 @@ import org.opencv.samples.markerlessarforandroid.calibration.CameraCalibration;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.os.SystemClock;
 import android.util.Log;
 
 /*
@@ -33,6 +34,7 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 	private final float[] mMVPMatrix = new float[16];
 	private final float[] mProjMatrix = new float[16];
 	private final float[] mVMatrix = new float[16];
+	private final float[] mRotationMatrix = new float[16];
 
 	// Subclasses containing the drawing logic for each axis
 	private Axis xAxis;
@@ -95,6 +97,14 @@ public class GraphicsRenderer implements GLSurfaceView.Renderer {
 				
 				// Calculate the projection and view transformation
 				Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
+				
+			    // Create a rotation transformation for the triangle
+			    long time = SystemClock.uptimeMillis() % 4000L;
+			    float angle = 0.090f * ((int) time);
+			    Matrix.setRotateM(mRotationMatrix, 0, angle, 0, 0, -1.0f);
+			    
+			    // Combine the rotation matrix with the projection and camera view
+			    // Matrix.multiplyMM(mMVPMatrix, 0, mRotationMatrix, 0, mMVPMatrix, 0);
 
 				// Draw each object under the current mMVPMatrix
 				xAxis.draw(mMVPMatrix);

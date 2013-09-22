@@ -30,12 +30,12 @@ public:
 
   PatternDetector     m_patternDetector;
 
+  void savePatterns(String directory) const;
+
 private:
   CameraCalibration   m_calibration;
   std::vector<Pattern>m_patterns;
   PatternTrackingInfo m_patternInfo;
-
-  void savePatterns() const;
 };
 
 #endif

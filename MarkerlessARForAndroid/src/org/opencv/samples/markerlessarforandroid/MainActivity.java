@@ -1,11 +1,14 @@
 package org.opencv.samples.markerlessarforandroid;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Vector;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.Utils;
@@ -20,11 +23,14 @@ import org.opencv.samples.markerlessarforandroid.calibration.CameraCalibration;
 import org.opencv.samples.markerlessarforandroid.calibration.CameraCalibrationActivity;
 import org.opencv.samples.markerlessarforandroid.graphics.GraphicsRenderer;
 import org.opencv.samples.markerlessarforandroid.graphics.GraphicsView;
+import org.opencv.samples.markerlessarforandroid.util.DirectoryChooserDialog;
+import org.opencv.samples.markerlessarforandroid.util.IoUtils;
 import org.opencv.samples.markerlessarforandroid.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
@@ -53,8 +59,9 @@ import android.widget.Toast;
 
 /**
  * The Main Activity for the application.
+ * 
  * @author Oliver Wilkie
- *
+ * 
  */
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
@@ -67,6 +74,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	private CameraCalibration cameraCalibration;
 
 	private Mat frame;
+
+	private String[] patternYMLPaths;
 
 	private static final boolean AUTO_HIDE = true; /* Auto-Hide System UI */
 	private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
@@ -98,11 +107,11 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			case LoaderCallbackInterface.SUCCESS: {
 				Log.i(TAG, "OpenCV loaded successfully");
 				openCVLoaded = true;
-				System.loadLibrary("ar-jni"); // Load native library after(!)
-												// OpenCV initialization
+				System.loadLibrary("ar-jni"); // Load native library
 				mOpenCvCameraView.enableView(); // Enable Camera View
 				if (processor == null) {
-					new BuildProcessorTask().execute(); // Initialise Frame Processor
+					// Initialize Frame Processor
+					new BuildProcessorTask().execute();
 				}
 				renderer.start(); // Enable Renderer
 				break;
@@ -115,51 +124,79 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		}
 	};
 
-	private class BuildProcessorTask extends AsyncTask<Void, Integer, Void> {
+	/**
+	 * Copies the YML patterns from the asset folder in the .apk file into the
+	 * app's file directory.
+	 */
+	private void useDefaultYAMLFiles() {
+		// Get list of YAML Files in apk
+		AssetManager assetManager = getAssets();
+		String imgFolder = "training-patterns";
+		String[] imgs;
+		try {
+			imgs = assetManager.list(imgFolder);
+		} catch (IOException e) {
+			imgs = new String[0];
+		}
+		// Copy to app's internal storage if not present
+		for (String img : imgs) {
+			if (getFileStreamPath(img).exists()) {
+				continue;
+			}
+			try {
+				InputStream is = assetManager.open(imgFolder + "/" + img);
+				FileOutputStream os = openFileOutput(img, Context.MODE_PRIVATE);
+				IoUtils.copy(is, os);
+			} catch (Exception e) {
+				Log.e(TAG, "Unable to read a default pattern file");
+			}
+		}
+
+		// Set patternYMLPaths to app's storage
+		String[] fileNames = fileList();
+		patternYMLPaths = new String[fileList().length];
+		for (int i = 0; i < fileNames.length; i++) {
+			// Get absolute File path for each YML file
+			patternYMLPaths[i] = getFilesDir().getAbsolutePath() + "/"
+					+ fileNames[i];
+		}
+		Toast.makeText(MainActivity.this, "Using Default Patterns",
+				Toast.LENGTH_SHORT).show();
+	}
+
+	private class BuildProcessorTask extends AsyncTask<Void, Integer, Boolean> {
 
 		@Override
-		protected Void doInBackground(Void... unused) {
-			// Load training images
-			AssetManager assetManager = getAssets();
-			String imgFolder = "training-images";
-			String[] imgs = new String[0];
-			try {
-				imgs = assetManager.list(imgFolder);
-			} catch (IOException e) {
-			}
-			Mat[] trainingImages = new Mat[imgs.length];
-			BitmapFactory.Options opts = new BitmapFactory.Options();
-			opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
-			InputStream istr;
-			Bitmap bmp = null;
-			for (int i = 0; i < imgs.length; i++) {
-				try {
-					istr = assetManager.open(imgFolder + File.separator
-							+ imgs[i]);
-					bmp = BitmapFactory.decodeStream(istr, null, opts);
-					// Convert to Mat
-					Mat tmp = new Mat(bmp.getWidth(), bmp.getHeight(),
-							CvType.CV_8UC1);
-					Utils.bitmapToMat(bmp, tmp);
-					trainingImages[i] = tmp;
-				} catch (IOException e) {
-					Log.e(TAG, "Could not load a training image from assets");
-				}
+		protected Boolean doInBackground(Void... args) {
+			// Close previous processor
+			if (processor != null) {
+				processor.release();
+				processor = null;
+				processorReady = false;
 			}
 			// Get Camera Calibration Settings
 			SharedPreferences settings = getSharedPreferences(
 					CALIBRATION_SETTINGS_FILE, 0);
-			processor = new NativeFrameProcessor(msgBoxHandler, trainingImages,
-					settings.getFloat("fx", 0), settings.getFloat("fy", 0),
-					settings.getFloat("cx", 0), settings.getFloat("cy", 0));
-			processorReady = true;
-			return null;
+			if (patternYMLPaths.length > 0) {
+				// Load YML
+				processor = new NativeFrameProcessor(msgBoxHandler,
+						patternYMLPaths, settings.getFloat("fx", 0),
+						settings.getFloat("fy", 0), settings.getFloat("cx", 0),
+						settings.getFloat("cy", 0));
+				processorReady = true;
+				return true;
+			} else {
+				// Load images
+			}
+			return false;
 		}
 
 		@Override
-		protected void onPostExecute(Void result) {
-			Toast.makeText(MainActivity.this, "Processor Started",
-					Toast.LENGTH_SHORT).show();
+		protected void onPostExecute(Boolean processorStarted) {
+			if (processorStarted) {
+				Toast.makeText(MainActivity.this, "Processing Started",
+						Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
@@ -176,6 +213,9 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 		} else {
 			loadCameraCalibration();
 		}
+
+		// Ensure default YAML Files exist
+		useDefaultYAMLFiles();
 
 		setContentView(R.layout.activity_fullscreen);
 
@@ -397,10 +437,74 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			item.setChecked(!app.isDebugMode());
 			app.setDebugMode(!app.isDebugMode());
 			return true;
+		case R.id.importPatterns:
+			choosePatternDirectory();
+			return true;
+		case R.id.export:
+			chooseExportDirectory();
+			return true;
 		case R.id.exit:
 			finish();
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	private void choosePatternDirectory() {
+		// Create DirectoryChooserDialog and register a callback
+		DirectoryChooserDialog directoryChooserDialog = new DirectoryChooserDialog(
+				MainActivity.this,
+				new DirectoryChooserDialog.ChosenDirectoryListener() {
+					@Override
+					public void onChosenDir(String chosenDir) {
+						importPatternsFromDirectory(chosenDir);
+					}
+				});
+		directoryChooserDialog.setNewFolderEnabled(true);
+		directoryChooserDialog.chooseDirectory(android.os.Environment
+				.getExternalStorageDirectory().getAbsolutePath());
+	}
+
+	private void importPatternsFromDirectory(String directory) {
+		// Search for YAML Patterns
+		File dir = new File(directory);
+		String[] files = dir.list();
+		ArrayList<String> yamlFiles = new ArrayList<String>();
+		for (String file : files) {
+			if (file.endsWith(".yml")) {
+				yamlFiles.add(directory + File.separator + file);
+			}
+		}
+		Log.i(TAG, "Found " + yamlFiles.size() + " pattern files to import");
+		if (yamlFiles.size() == 0) {
+			Toast.makeText(MainActivity.this,
+					"No YAML files found in chosen directory",
+					Toast.LENGTH_LONG).show();
+		} else {
+			patternYMLPaths = new String[yamlFiles.size()];
+			for (int i = 0; i < yamlFiles.size(); i++) {
+				patternYMLPaths[i] = yamlFiles.get(i);
+			}
+			new BuildProcessorTask().execute();
+		}
+	}
+
+	private void chooseExportDirectory() {
+		// Create DirectoryChooserDialog and register a callback
+		DirectoryChooserDialog directoryChooserDialog = new DirectoryChooserDialog(
+				MainActivity.this,
+				new DirectoryChooserDialog.ChosenDirectoryListener() {
+					@Override
+					public void onChosenDir(String chosenDir) {
+						exportPatternsToDirectory(chosenDir);
+					}
+				});
+		directoryChooserDialog.setNewFolderEnabled(true);
+		directoryChooserDialog.chooseDirectory(android.os.Environment
+				.getExternalStorageDirectory().getAbsolutePath());
+	}
+
+	private void exportPatternsToDirectory(String directoryPath) {
+		processor.savePatterns(directoryPath);
 	}
 }

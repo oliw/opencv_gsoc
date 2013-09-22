@@ -38,6 +38,31 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreate
 	return (long) p;
 }
 
+JNIEXPORT jlong JNICALL
+Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject2(
+		JNIEnv *env, jobject obj, jobjectArray stringArray, jfloat fx,
+		jfloat fy, jfloat cx, jfloat cy) {
+	CameraCalibration callib(fx, fy, cx, cy);
+
+	int stringCount = env->GetArrayLength(stringArray);
+	vector<string> yamls(stringCount);
+
+	for (int i = 0; i<stringCount; i++) {
+		jstring string = (jstring) env->GetObjectArrayElement(stringArray, i);
+		const char *rawstring = env->GetStringUTFChars(string,0);
+		std::string s(rawstring);
+		yamls[i] = s;
+		env->ReleaseStringUTFChars(string,rawstring);
+	}
+
+	ARPipeline* p = new ARPipeline(yamls, callib);
+#ifdef ANDROID_NDK_PROFILER_ENABLED
+	setenv("CPUPROFILE_FREQUENCY", "500", 1); /* Change to 500 interrupts per second */
+	monstartup("libar-jni.so");
+#endif
+	return (long) p;
+}
+
 JNIEXPORT void JNICALL
 Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeDestroyObject(
 		JNIEnv *env, jobject obj, jlong object) {
@@ -63,5 +88,14 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeGetPos
 
 	Matx44f patternLoc = pipeline->getPatternLocation().getMat44();
 	*pose3D = Mat(patternLoc);
+}
+
+JNIEXPORT void JNICALL
+Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeSavePatterns(JNIEnv *env, jclass obj, jlong object, jstring path) {
+	const char *s = env->GetStringUTFChars(path,NULL);
+	std::string str(s);
+	env->ReleaseStringUTFChars(path,s);
+	ARPipeline *pipeline = (ARPipeline *) object;
+	pipeline->savePatterns(str);
 }
 }

@@ -37,6 +37,15 @@ public class NativeFrameProcessor {
 		nativeARPipelineObject = nativeCreateObject(images, nImages, fx, fy,
 				cx, cy);
 	}
+	
+	public NativeFrameProcessor(Handler uiFeedback, String[] yamlFilePaths,
+			float fx, float fy, float cx, float cy) {
+		frameLowQualityBuffer = new Mat(480, 640, CvType.CV_8UC4);
+		this.uiFeedback = uiFeedback;
+		wasFoundBefore = false;
+		nativeARPipelineObject = nativeCreateObject2(yamlFilePaths, fx, fy,
+				cx, cy);
+	}
 
 	public boolean processFrame(Mat frame) {
 		// Create lower quality version of frame
@@ -65,13 +74,21 @@ public class NativeFrameProcessor {
 		nativeDestroyObject(nativeARPipelineObject);
 		nativeARPipelineObject = 0;
 	}
+	
+	public void savePatterns(String directory) {
+		nativeSavePatterns(nativeARPipelineObject,directory);
+	}
 
 	private static native long nativeCreateObject(long[] images, int nImages,
 			float fx, float fy, float cx, float cy);
+	
+	private static native long nativeCreateObject2(String[] yamls, float fx, float fy, float cx, float cy);
 
 	private static native boolean nativeProcess(long object, long frame);
 
 	private static native void nativeGetPose(long object, long pose);
 
 	private static native void nativeDestroyObject(long object);
+
+	private static native void nativeSavePatterns(long object, String path);
 }
