@@ -1,5 +1,12 @@
 <html>
-	<head></head>
+	<head>
+		<style type="text/css">
+			img {
+				width: 100%;
+				max-width: 300px;
+			}
+		</style>
+	</head>
 	<body>
 		<h1>Markerless AR Sample For Android</h1>
 		<p>This is a sample application for Markerless Augmented Reality using OpenCVForAndroid. It uses extended code by Khvedchenia Ievgen (see Mastering OpenCV book)</p>
@@ -7,11 +14,13 @@
 		<p>For Augmented Reality to work, you need to provide your device camera's intristic parameters so that the graphics rendered on top of the camera feed are warped to ensure a realistic effect. To retrieve these parameters you need to calibrate your camera. The main activity won't begin unless the camera calibration has happened.</p>
 		<p>You will need to print off the 11x4 OpenCV asymmetric circles' grid from <a href="http://docs.opencv.org/_downloads/acircles_pattern.png">here</a> . Then, open the Camera Calibration screen and point the camera over the printed pattern. When the pattern is found, tap the screen to collect the image. Collect several photos and then press the Calibrate button. Once calibration has successfully completed you can return to the main screen.</p>
 		<h2>Books</h2>
-		<p>By default, the application is trained to detect a selection of OpenCV-related book covers.</p>
+		<p>By default, the application is trained to detect the following selection of OpenCV-related book covers.</p>
 		<ul>
 		<li><img src="file:///android_asset/training-images/one.jpg"/></li>
 		<li><img src="file:///android_asset/training-images/two.jpg"/></li>
 		</ul>
+		<p>You can change this by importing your own patterns in the YML format from the application menu.</p>
+		<h2></h2>
 		<h2>Links</h2>
 		<p>Author: <a href="http://www.twitter.com/oliwilks">Oliver Wilkie</a></p>
 		<p>Github: <a href="https://github.com/ozzyoli/opencv_gsoc">profile</a></p>
