@@ -1,0 +1,16 @@
+<html>
+	<head></head>
+	<body>
+		<h1>Markerless AR Sample For Android</h1>
+		<p>This is a sample application for Markerless Augmented Reality using OpenCVForAndroid. It uses extended code by Khvedchenia Ievgen (see Mastering OpenCV book)</p>
+		<h2>Using the Camera Calibration</h2>
+		<p>For Augmented Reality to work, you need to provide your device camera's intristic parameters so that the graphics rendered on top of the camera feed are warped to ensure a realistic effect. To retrieve these parameters you need to calibrate your camera. The main activity won't begin unless the camera calibration has happened.</p>
+		<p>You will need to print off the 11x4 OpenCV asymmetric circles' grid from http://docs.opencv.org/_downloads/acircles_pattern.png . Then, open the Camera Calibration screen and point the camera over the printed pattern. When the pattern is found, tap the screen to collect the image. Collect several photos and then press the Calibrate button. Once calibration has successfully completed you can return to the main screen.</p>
+		<h2>Books</h2>
+		<p>By default, the application is trained to detect a selection of OpenCV-related book covers.</p>
+		<ul>
+		<li>1</li>
+		<li>2</li>
+		</ul>
+	</body>
+</html>

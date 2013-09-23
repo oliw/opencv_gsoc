@@ -25,14 +25,6 @@
     <string name="undistorted">Undistorted</string>
     <string name="help">Help</string>
     <string name="title_activity_camera_calibration_help">About Camera Callibration</string>
-    <string name="about_the_app">
-        <![CDATA[
-        <h1>Using the Camera Calibration</h1>
-        <p>First, print off the 11x4 OpenCV asymmetric circles\' grid from http://docs.opencv.org/_downloads/acircles_pattern.png</p>
-        <p>Then, open the Camera Calibration screen and point the camera over the printed pattern. When the pattern is found, tap the screen to collect the image.</p>
-        <p>Collect several photos and then press the Calibrate button. Once calibration has successfully completed you can return to the main screen.</p> 
-        ]]>
-    </string>
     <string name="action_resolution">Resolution</string>
 
 </resources>

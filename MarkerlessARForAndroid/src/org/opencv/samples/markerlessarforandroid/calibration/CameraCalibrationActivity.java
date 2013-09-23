@@ -23,6 +23,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.markerlessarforandroid.R;
+import org.opencv.samples.markerlessarforandroid.AboutActivity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -127,7 +128,7 @@ public class CameraCalibrationActivity extends Activity implements CvCameraViewL
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.calibrate_help:
-        	Intent intent = new Intent(this, CameraCalibrationHelpActivity.class);
+        	Intent intent = new Intent(this, AboutActivity.class);
         	startActivity(intent);
         	return true;
         case R.id.calibration:

@@ -1,11 +1,20 @@
 package org.opencv.samples.markerlessarforandroid;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.Scanner;
+
 import org.opencv.markerlessarforandroid.R;
+import org.opencv.samples.markerlessarforandroid.util.IoUtils;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.text.Html;
+import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
+import android.webkit.WebView;
 import android.widget.TextView;
 
 /**
@@ -19,8 +28,9 @@ public class AboutActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_about);
-		TextView text = (TextView)findViewById(R.id.AboutTextView);
-		text.setText(Html.fromHtml(getString(R.string.about_the_app)));
+		
+		WebView web = (WebView)findViewById(R.id.webview);
+		web.loadUrl("file:///android_asset/readme.html");
 	}
 
 }
