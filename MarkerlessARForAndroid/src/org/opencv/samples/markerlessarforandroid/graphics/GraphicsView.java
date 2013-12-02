@@ -6,7 +6,7 @@ import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 
 public class GraphicsView extends GLSurfaceView {
-	
+		
 	public GraphicsView(Context context) {
 		super(context);
 		init();
@@ -22,5 +22,5 @@ public class GraphicsView extends GLSurfaceView {
         setEGLConfigChooser(8,8,8,8,16,0);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
 	}
-	
+		
 }

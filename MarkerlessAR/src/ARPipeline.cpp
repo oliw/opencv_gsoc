@@ -12,9 +12,8 @@
 ////////////////////////////////////////////////////////////////////
 // File includes:
 #include "ARPipeline.hpp"
-#include <android/log.h>
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "markerless-ar-ndk", __VA_ARGS__))
+//#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "markerless-ar-ndk", __VA_ARGS__))
 
 
 ARPipeline::ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCalibration& calibration)

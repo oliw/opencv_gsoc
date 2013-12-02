@@ -1,11 +1,10 @@
-package org.opencv.samples.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid.processor;
 
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
 import android.os.Handler;
-import android.util.Log;
 
 /**
  * The NativeFrameProcessor acts as the interface between the Android

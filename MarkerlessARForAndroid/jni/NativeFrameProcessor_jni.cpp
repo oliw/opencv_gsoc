@@ -15,7 +15,7 @@ using namespace cv;
 extern "C" {
 
 JNIEXPORT jlong JNICALL
-Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject(
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject(
 		JNIEnv *env, jobject obj, jlongArray images, jint imgCount, jfloat fx,
 		jfloat fy, jfloat cx, jfloat cy) {
 	CameraCalibration callib(fx, fy, cx, cy);
@@ -39,7 +39,7 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreate
 }
 
 JNIEXPORT jlong JNICALL
-Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreateObject2(
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject2(
 		JNIEnv *env, jobject obj, jobjectArray stringArray, jfloat fx,
 		jfloat fy, jfloat cx, jfloat cy) {
 	CameraCalibration callib(fx, fy, cx, cy);
@@ -64,7 +64,7 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeCreate
 }
 
 JNIEXPORT void JNICALL
-Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeDestroyObject(
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeDestroyObject(
 		JNIEnv *env, jobject obj, jlong object) {
 	delete (ARPipeline *) object;
 #ifdef ANDROID_NDK_PROFILER_ENABLED
@@ -73,7 +73,7 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeDestro
 }
 
 JNIEXPORT jboolean JNICALL
-Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeProcess(
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeProcess(
 		JNIEnv *env, jobject obj, jlong object, jlong frame) {
 	ARPipeline *pipeline = (ARPipeline *) object;
 	Mat *mat = (Mat *) frame;
@@ -81,7 +81,7 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeProces
 }
 
 JNIEXPORT void JNICALL
-Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeGetPose(
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeGetPose(
 		JNIEnv *env, jobject obj, jlong object, jlong pose) {
 	ARPipeline *pipeline = (ARPipeline *) object;
 	Mat *pose3D = (Mat *) pose;
@@ -91,7 +91,7 @@ Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeGetPos
 }
 
 JNIEXPORT void JNICALL
-Java_org_opencv_samples_markerlessarforandroid_NativeFrameProcessor_nativeSavePatterns(JNIEnv *env, jclass obj, jlong object, jstring path) {
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeSavePatterns(JNIEnv *env, jclass obj, jlong object, jstring path) {
 	const char *s = env->GetStringUTFChars(path,NULL);
 	std::string str(s);
 	env->ReleaseStringUTFChars(path,s);

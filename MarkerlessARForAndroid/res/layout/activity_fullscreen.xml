@@ -6,19 +6,18 @@
     android:background="#0099cc"
     android:id="@+id/MainViewGroup"
     tools:context=".MainActivity" >
-
-    <org.opencv.samples.markerlessarforandroid.CameraView
-        android:id="@+id/OpenCVCameraView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        opencv:camera_id="any"
-        opencv:show_fps="true" />
-
+    
     <org.opencv.samples.markerlessarforandroid.graphics.GraphicsView
         android:id="@+id/OpenGLGraphicsView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" />    
+
+    <org.opencv.samples.markerlessarforandroid.camera.CameraView
+        android:id="@+id/OpenCVCameraView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        opencv:camera_id="any"
+        opencv:show_fps="true" />
 
     <FrameLayout
         android:layout_width="match_parent"

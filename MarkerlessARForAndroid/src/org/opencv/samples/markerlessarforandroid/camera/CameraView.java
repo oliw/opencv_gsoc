@@ -1,4 +1,4 @@
-package org.opencv.samples.markerlessarforandroid;
+package org.opencv.samples.markerlessarforandroid.camera;
 
 import java.util.List;
 
