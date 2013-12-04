@@ -72,23 +72,14 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 	private String[] patternYMLPaths;
 
-	private static final boolean AUTO_HIDE = true; /* Auto-Hide System UI */
-	private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
-	private static final boolean TOGGLE_ON_CLICK = true; /*
-	 * Toggle System UI when
-	 * pushed
-	 */
-	private static final int HIDER_FLAGS = SystemUiHider.FLAG_HIDE_NAVIGATION;
-	private SystemUiHider mSystemUiHider;
+	private CameraView mOpenCvCameraView;
+	private GraphicsView mGraphicsView;
+	private TextView messageBox;
 
 	private Menu menu;
 	private List<Size> mResolutionList;
 	private MenuItem[] mResolutionMenuItems;
 	private SubMenu mResolutionMenu;
-
-	private CameraView mOpenCvCameraView;
-	private GraphicsView mGraphicsView;
-	private TextView messageBox;
 
 	// Get Camera Calibration Settings
 	SharedPreferences settings;
@@ -97,57 +88,22 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Ensure default YAML Files exist
-		useDefaultYAMLFiles();
-
 		setContentView(R.layout.activity_fullscreen);
 
-		//		messageBox = (TextView) findViewById(R.id.info_message);	
+		//messageBox = (TextView) findViewById(R.id.info_message);	
 
 		settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
 
 		// Load camera view
 		mOpenCvCameraView = (CameraView) findViewById(R.id.OpenCVCameraView);
 		mOpenCvCameraView.setCvCameraViewListener(MainActivity.this);
-		
+
 		// Load graphics view
 		mGraphicsView = (GraphicsView) findViewById(R.id.OpenGLGraphicsView);
 		renderer = new JPCTGraphicsRenderer(MainActivity.this);
 		mGraphicsView.setRenderer(renderer);
 		mGraphicsView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 		mGraphicsView.setZOrderMediaOverlay(true);
-		
-		new LoadingTask().execute();
-
-		// Set up an instance of SystemUiHider to control the system UI for
-		// this activity.
-		//		mSystemUiHider = SystemUiHider.getInstance(this, topView, HIDER_FLAGS);
-		//		mSystemUiHider.setup();
-		//		mSystemUiHider
-		//		.setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener() {
-		//			@Override
-		//			@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-		//			public void onVisibilityChange(boolean visible) {
-		//				if (visible && AUTO_HIDE) {
-		//					// Schedule a hide().
-		//					delayedHide(AUTO_HIDE_DELAY_MILLIS);
-		//				}
-		//			}
-		//		});
-		//
-		//		// Set up the user interaction to manually show or hide the system UI.
-		//		topView.setOnClickListener(new View.OnClickListener() {
-		//			@Override
-		//			public void onClick(View view) {
-		//				if (TOGGLE_ON_CLICK) {
-		//					mSystemUiHider.toggle();
-		//				} else {
-		//					mSystemUiHider.show();
-		//				}
-		//			}
-		//		});
-
-		//		topView.setVisibility(SurfaceView.VISIBLE);
 	}	
 
 	private class LoadingTask extends AsyncTask<Void, Integer, Void> {
@@ -163,9 +119,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			dialog.setTitle("Starting...");
 			dialog.setMessage("Please wait.");
 			dialog.setCancelable(false);
-			dialog.setProgressStyle(dialog.STYLE_HORIZONTAL);
-			dialog.setProgress(0);
-			dialog.setMax(5);
 			dialog.show();
 		}
 
@@ -175,25 +128,21 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, MainActivity.this,
 					mLoaderCallback);
 			Log.i(TAG, "LoadingTask waiting for OpenCV");
-			publishProgress(1);
+			// Wait for OpenCV
 			try {
 				latch.await();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			publishProgress(2);
 			// Load JNI Code
 			System.loadLibrary("ar-jni");
-			publishProgress(3);
-			// Load processor
+			// Load JNI Frame Processor
 			processor = new NativeFrameProcessor(msgBoxHandler,
-					patternYMLPaths, settings.getFloat("fx", 0),
+					MainActivity.this, settings.getFloat("fx", 0),
 					settings.getFloat("fy", 0), settings.getFloat("cx", 0),
 					settings.getFloat("cy", 0));
-			publishProgress(4);
-			// Initialise Renderer in thread-safe manner
+			// Initialise OpenGL Renderer
 			renderer.init();
-			publishProgress(5);
 			// Update menu
 			//updateMenu();
 			return null;
@@ -221,48 +170,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			dialog.dismiss();
 		}
 	}
-
-
-	/**
-	 * Copies the YML patterns from the asset folder in the .apk file into the
-	 * app's file directory.
-	 */
-	private void useDefaultYAMLFiles() {
-		// Get list of YAML Files in apk
-		AssetManager assetManager = getAssets();
-		String imgFolder = "training-patterns";
-		String[] imgs;
-		try {
-			imgs = assetManager.list(imgFolder);
-		} catch (IOException e) {
-			imgs = new String[0];
-		}
-		// Copy to app's internal storage if not present
-		for (String img : imgs) {
-			if (getFileStreamPath(img).exists()) {
-				continue;
-			}
-			try {
-				InputStream is = assetManager.open(imgFolder + "/" + img);
-				FileOutputStream os = openFileOutput(img, Context.MODE_PRIVATE);
-				IoUtils.copy(is, os);
-			} catch (Exception e) {
-				Log.e(TAG, "Unable to read a default pattern file");
-			}
-		}
-
-		// Set patternYMLPaths to app's storage
-		String[] fileNames = fileList();
-		patternYMLPaths = new String[fileList().length];
-		for (int i = 0; i < fileNames.length; i++) {
-			// Get absolute File path for each YML file
-			patternYMLPaths[i] = getFilesDir().getAbsolutePath() + "/"
-					+ fileNames[i];
-		}
-		Toast.makeText(MainActivity.this, "Using Default Patterns",
-				Toast.LENGTH_SHORT).show();
-	}
-
 
 	private void loadCameraCalibration() {
 		// Get Camera Calibration Settings
@@ -296,14 +203,18 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// Ensure Camera Calibration Settings exist
-		//		SharedPreferences settings = getSharedPreferences(
-		//				CALIBRATION_SETTINGS_FILE, 0);
-		//		if (settings.getAll().size() == 0) {
-		//			startActivity(new Intent(this, CameraCalibrationActivity.class));
-		//			finish();
-		//			return;
-		//		}
+		//Ensure Camera Calibration Settings exist
+		SharedPreferences settings = getSharedPreferences(
+				CALIBRATION_SETTINGS_FILE, 0);
+		if (settings.getAll().size() == 0) {
+			startActivity(new Intent(this, CameraCalibrationActivity.class));
+			finish();
+			return;
+		} else {
+			loadCameraCalibration();
+			// Start heavy duty work on background thread
+			new LoadingTask().execute();
+		}
 		if (mGraphicsView != null)
 			mGraphicsView.onResume();
 	}
@@ -311,48 +222,13 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
-		// Trigger the initial hide() shortly after the activity has been
-		// created, to briefly hint to the user that UI controls
-		// are available.
-		//delayedHide(100);
 	}
 
-	/**
-	 * Touch listener to use for in-layout UI controls to delay hiding the
-	 * system UI. This is to prevent the jarring behaviour of controls going
-	 * away while interacting with activity UI.
-	 */
-	//	View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
-	//		@Override
-	//		public boolean onTouch(View view, MotionEvent motionEvent) {
-	//			if (AUTO_HIDE) {
-	//				delayedHide(AUTO_HIDE_DELAY_MILLIS);
-	//			}
-	//			return false;
-	//		}
-	//	};
 
-	//	Handler mHideHandler = new Handler();
-	//	Runnable mHideRunnable = new Runnable() {
-	//		@Override
-	//		public void run() {
-	//			mSystemUiHider.hide();
-	//		}
-	//	};
-
-	/**
-	 * Schedules a call to hide() in [delay] milliseconds, cancelling any
-	 * previously scheduled calls.
-	 */
-	//	private void delayedHide(int delayMillis) {
-	//		mHideHandler.removeCallbacks(mHideRunnable);
-	//		mHideHandler.postDelayed(mHideRunnable, delayMillis);
-	//	}
 
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		frame = new Mat();
-
 	}
 
 	@Override
@@ -363,12 +239,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		frame = inputFrame.rgba();
-		//		if (processor.processFrame(frame)) {
-		//			Mat pose = processor.getPose();
-		//
-		//		} else {
-		//
-		//		}
+		if (processor.processFrame(frame)) {
+			//Mat pose = processor.getPose();
+
+		} else {
+
+		}
 		return frame;
 	}
 

@@ -10,7 +10,7 @@ LOCAL_PATH := $(ANDROID_LOCAL_PATH)
 LOCAL_MODULE := ar-jni 
 LOCAL_STATIC_LIBRARIES := markerless_ar_desktop
 LOCAL_SRC_FILES := NativeFrameProcessor_jni.cpp
-LOCAL_LDLIBS +=  -llog -ldl
+LOCAL_LDLIBS +=  -llog -ldl -landroid
 ifeq ($(ANDROID_NDK_PROFILER_ENABLED),true)
 LOCAL_CFLAGS += -pg 
 LOCAL_CFLAGS += -DANDROID_NDK_PROFILER_ENABLED

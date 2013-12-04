@@ -27,14 +27,20 @@
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1440885351" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
 								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1219821401" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${NDKROOT}/platforms/android-14/arch-arm/usr/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${NDKROOT}/sources/cxx-stl/gnu-libstdc++/4.6/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${NDKROOT}/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a/include&quot;"/>
-									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/OpenCV-2.4.5-Tegra-sdk/sdk/native/jni/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/OpenCV-2.4.5-Tegra-sdk-r2/sdk/native/jni/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/android-ndk-r8e/platforms/android-9/arch-arm/usr/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a/include"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.892425471" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool id="org.eclipse.cdt.build.core.settings.holder.1452240451" name="GNU C" superClass="org.eclipse.cdt.build.core.settings.holder">
+								<option id="org.eclipse.cdt.build.core.settings.holder.incpaths.1391167920" name="Include Paths" superClass="org.eclipse.cdt.build.core.settings.holder.incpaths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/OpenCV-2.4.5-Tegra-sdk-r2/sdk/native/jni/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/android-ndk-r8e/platforms/android-9/arch-arm/usr/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/include"/>
+									<listOptionValue builtIn="false" value="/Users/Oli/NVPACK/android-ndk-r8e/sources/cxx-stl/gnu-libstdc++/4.6/libs/armeabi-v7a/include"/>
+								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.218879336" languageId="org.eclipse.cdt.core.gcc" languageName="GNU C" sourceContentType="org.eclipse.cdt.core.cSource,org.eclipse.cdt.core.cHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 						</toolChain>

@@ -1,4 +1,6 @@
 #include <jni.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -18,6 +20,7 @@ JNIEXPORT jlong JNICALL
 Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject(
 		JNIEnv *env, jobject obj, jlongArray images, jint imgCount, jfloat fx,
 		jfloat fy, jfloat cx, jfloat cy) {
+
 	CameraCalibration callib(fx, fy, cx, cy);
 
 	jlong imagesBuff[imgCount];
@@ -31,6 +34,7 @@ Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_na
 	}
 
 	ARPipeline* p = new ARPipeline(arr, callib);
+
 #ifdef ANDROID_NDK_PROFILER_ENABLED
 	setenv("CPUPROFILE_FREQUENCY", "500", 1); /* Change to 500 interrupts per second */
 	monstartup("libar-jni.so");
@@ -39,23 +43,24 @@ Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_na
 }
 
 JNIEXPORT jlong JNICALL
-Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject2(
-		JNIEnv *env, jobject obj, jobjectArray stringArray, jfloat fx,
+Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject3(
+		JNIEnv *env, jclass clazz, jobject assetManager, jfloat fx,
 		jfloat fy, jfloat cx, jfloat cy) {
 	CameraCalibration callib(fx, fy, cx, cy);
 
-	int stringCount = env->GetArrayLength(stringArray);
-	vector<string> yamls(stringCount);
+	// Get strings of YAMLS
+	std::vector<std::string> yamls;
+	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
+	AAssetDir* assetDir = AAssetManager_openDir(mgr, "training-patterns");
+	const char* filename = (const char*)NULL;
+	while ((filename = AAssetDir_getNextFileName(assetDir)) != NULL) {
+		yamls.push_back(filename);
 
-	for (int i = 0; i<stringCount; i++) {
-		jstring string = (jstring) env->GetObjectArrayElement(stringArray, i);
-		const char *rawstring = env->GetStringUTFChars(string,0);
-		std::string s(rawstring);
-		yamls[i] = s;
-		env->ReleaseStringUTFChars(string,rawstring);
 	}
+	AAssetDir_close(assetDir);
 
 	ARPipeline* p = new ARPipeline(yamls, callib);
+
 #ifdef ANDROID_NDK_PROFILER_ENABLED
 	setenv("CPUPROFILE_FREQUENCY", "500", 1); /* Change to 500 interrupts per second */
 	monstartup("libar-jni.so");

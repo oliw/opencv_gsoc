@@ -4,6 +4,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Handler;
 
 /**
@@ -14,6 +16,8 @@ import android.os.Handler;
  * 
  */
 public class NativeFrameProcessor {
+	
+	Context context;
 
 	private long nativeARPipelineObject = 0;
 
@@ -23,26 +27,26 @@ public class NativeFrameProcessor {
 
 	private Mat frameLowQualityBuffer;
 
-	public NativeFrameProcessor(Handler uiFeedback, Mat[] trainingImages,
-			float fx, float fy, float cx, float cy) {
-		frameLowQualityBuffer = new Mat(480, 640, CvType.CV_8UC4);
-		this.uiFeedback = uiFeedback;
-		wasFoundBefore = false;
-		int nImages = trainingImages.length;
-		long[] images = new long[nImages];
-		for (int i = 0; i < nImages; i++) {
-			images[i] = trainingImages[i].getNativeObjAddr();
-		}
-		nativeARPipelineObject = nativeCreateObject(images, nImages, fx, fy,
-				cx, cy);
-	}
+//	public NativeFrameProcessor(Handler uiFeedback, Mat[] trainingImages,
+//			float fx, float fy, float cx, float cy) {
+//		frameLowQualityBuffer = new Mat(480, 640, CvType.CV_8UC4);
+//		this.uiFeedback = uiFeedback;
+//		wasFoundBefore = false;
+//		int nImages = trainingImages.length;
+//		long[] images = new long[nImages];
+//		for (int i = 0; i < nImages; i++) {
+//			images[i] = trainingImages[i].getNativeObjAddr();
+//		}
+//		nativeARPipelineObject = nativeCreateObject(images, nImages, fx, fy,
+//				cx, cy);
+//	}
 	
-	public NativeFrameProcessor(Handler uiFeedback, String[] yamlFilePaths,
+	public NativeFrameProcessor(Handler uiFeedback, Context context,
 			float fx, float fy, float cx, float cy) {
 		frameLowQualityBuffer = new Mat(480, 640, CvType.CV_8UC4);
 		this.uiFeedback = uiFeedback;
 		wasFoundBefore = false;
-		nativeARPipelineObject = nativeCreateObject2(yamlFilePaths, fx, fy,
+		nativeARPipelineObject = nativeCreateObject3(context.getAssets(), fx, fy,
 				cx, cy);
 	}
 
@@ -78,10 +82,9 @@ public class NativeFrameProcessor {
 		nativeSavePatterns(nativeARPipelineObject,directory);
 	}
 
-	private static native long nativeCreateObject(long[] images, int nImages,
-			float fx, float fy, float cx, float cy);
-	
-	private static native long nativeCreateObject2(String[] yamls, float fx, float fy, float cx, float cy);
+	//private static native long nativeCreateObject(long[] images, int nImages, float fx, float fy, float cx, float cy);
+		
+	private static native long nativeCreateObject3(AssetManager manager, float fx, float fy, float cx, float cy);
 
 	private static native boolean nativeProcess(long object, long frame);
 
