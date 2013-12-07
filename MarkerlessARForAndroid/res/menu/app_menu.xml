@@ -14,11 +14,7 @@
         android:title="Resolution">
         <menu>
         </menu>
-    </item>
-    <item
-        android:id="@+id/importPatterns"
-        android:title="Import Patterns">
-    </item>    
+    </item>   
     <item
         android:id="@+id/export"
         android:title="Export Patterns">

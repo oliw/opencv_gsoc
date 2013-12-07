@@ -16,6 +16,19 @@ using namespace cv;
 
 extern "C" {
 
+std::string ConvertJString(JNIEnv* env, jstring str)
+{
+
+   const jsize len = env->GetStringUTFLength(str);
+   const char* strChars = env->GetStringUTFChars(str, (jboolean *)0);
+
+   std::string Result(strChars, len);
+
+   env->ReleaseStringUTFChars(str, strChars);
+
+   return Result;
+}
+
 JNIEXPORT jlong JNICALL
 Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject(
 		JNIEnv *env, jobject obj, jlongArray images, jint imgCount, jfloat fx,
@@ -44,20 +57,18 @@ Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_na
 
 JNIEXPORT jlong JNICALL
 Java_org_opencv_samples_markerlessarforandroid_processor_NativeFrameProcessor_nativeCreateObject3(
-		JNIEnv *env, jclass clazz, jobject assetManager, jfloat fx,
+		JNIEnv *env, jclass clazz, jobjectArray patternPaths, jfloat fx,
 		jfloat fy, jfloat cx, jfloat cy) {
 	CameraCalibration callib(fx, fy, cx, cy);
 
 	// Get strings of YAMLS
 	std::vector<std::string> yamls;
-	AAssetManager* mgr = AAssetManager_fromJava(env, assetManager);
-	AAssetDir* assetDir = AAssetManager_openDir(mgr, "training-patterns");
-	const char* filename = (const char*)NULL;
-	while ((filename = AAssetDir_getNextFileName(assetDir)) != NULL) {
-		yamls.push_back(filename);
-
+	int numPatternPaths = env->GetArrayLength(patternPaths);
+	for (int i = 0; i < numPatternPaths; i++) {
+		jstring string = (jstring) env->GetObjectArrayElement(patternPaths, i);
+		std::string s = ConvertJString(env, string);
+		yamls.push_back(s);
 	}
-	AAssetDir_close(assetDir);
 
 	ARPipeline* p = new ARPipeline(yamls, callib);
 

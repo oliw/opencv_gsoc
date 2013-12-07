@@ -1,10 +1,5 @@
 package org.opencv.samples.markerlessarforandroid;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.concurrent.CountDownLatch;
@@ -12,7 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
-import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.markerlessarforandroid.R;
@@ -23,20 +17,13 @@ import org.opencv.samples.markerlessarforandroid.graphics.GraphicsView;
 import org.opencv.samples.markerlessarforandroid.graphics.JPCTGraphicsRenderer;
 import org.opencv.samples.markerlessarforandroid.processor.NativeFrameProcessor;
 import org.opencv.samples.markerlessarforandroid.util.DirectoryChooserDialog;
-import org.opencv.samples.markerlessarforandroid.util.IoUtils;
-import org.opencv.samples.markerlessarforandroid.util.SystemUiHider;
-
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.hardware.Camera.Size;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -44,13 +31,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SubMenu;
-import android.view.SurfaceView;
-import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * The Main Activity for the application.
@@ -70,8 +52,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 	private Mat frame;
 
-	private String[] patternYMLPaths;
-
 	private CameraView mOpenCvCameraView;
 	private GraphicsView mGraphicsView;
 	private TextView messageBox;
@@ -90,7 +70,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
 		setContentView(R.layout.activity_fullscreen);
 
-		//messageBox = (TextView) findViewById(R.id.info_message);	
+		messageBox = (TextView) findViewById(R.id.info_message);	
 
 		settings = getSharedPreferences(CALIBRATION_SETTINGS_FILE, 0);
 
@@ -310,9 +290,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			item.setChecked(!app.isDebugMode());
 			app.setDebugMode(!app.isDebugMode());
 			return true;
-		case R.id.importPatterns:
-			choosePatternDirectory();
-			return true;
 		case R.id.export:
 			chooseExportDirectory();
 			return true;
@@ -320,45 +297,6 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 			finish();
 		default:
 			return super.onOptionsItemSelected(item);
-		}
-	}
-
-	private void choosePatternDirectory() {
-		// Create DirectoryChooserDialog and register a callback
-		DirectoryChooserDialog directoryChooserDialog = new DirectoryChooserDialog(
-				MainActivity.this,
-				new DirectoryChooserDialog.ChosenDirectoryListener() {
-					@Override
-					public void onChosenDir(String chosenDir) {
-						importPatternsFromDirectory(chosenDir);
-					}
-				});
-		directoryChooserDialog.setNewFolderEnabled(true);
-		directoryChooserDialog.chooseDirectory(android.os.Environment
-				.getExternalStorageDirectory().getAbsolutePath());
-	}
-
-	private void importPatternsFromDirectory(String directory) {
-		// Search for YAML Patterns
-		File dir = new File(directory);
-		String[] files = dir.list();
-		ArrayList<String> yamlFiles = new ArrayList<String>();
-		for (String file : files) {
-			if (file.endsWith(".yml")) {
-				yamlFiles.add(directory + File.separator + file);
-			}
-		}
-		Log.i(TAG, "Found " + yamlFiles.size() + " pattern files to import");
-		if (yamlFiles.size() == 0) {
-			Toast.makeText(MainActivity.this,
-					"No YAML files found in chosen directory",
-					Toast.LENGTH_LONG).show();
-		} else {
-			patternYMLPaths = new String[yamlFiles.size()];
-			for (int i = 0; i < yamlFiles.size(); i++) {
-				patternYMLPaths[i] = yamlFiles.get(i);
-			}
-			//new BuildProcessorTask().execute();
 		}
 	}
 

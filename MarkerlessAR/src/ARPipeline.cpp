@@ -13,9 +13,6 @@
 // File includes:
 #include "ARPipeline.hpp"
 
-//#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "markerless-ar-ndk", __VA_ARGS__))
-
-
 ARPipeline::ARPipeline(const std::vector<cv::Mat>& patternImages, const CameraCalibration& calibration)
   : m_calibration(calibration)
 {
@@ -33,6 +30,7 @@ ARPipeline::ARPipeline(const std::vector<std::string>& patternYamlPaths, const C
 bool ARPipeline::processFrame(const cv::Mat& inputFrame)
 {
   bool patternFound = m_patternDetector.findPattern(inputFrame, m_patternInfo);
+
   if (patternFound)
   {
     m_patternInfo.computePose(m_patterns[m_patternInfo.patternIdx], m_calibration);

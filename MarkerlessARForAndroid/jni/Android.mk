@@ -1,6 +1,7 @@
 # There is one Android.mk per module
 ANDROID_LOCAL_PATH := $(call my-dir)
 ANDROID_NDK_PROFILER_ENABLED := false
+APP_PLATFORM := android-19
 
 # OpenCV For Android
 include $(OPENCV4AROOT)/sdk/native/jni/OpenCV-tegra3.mk

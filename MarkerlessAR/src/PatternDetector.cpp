@@ -173,18 +173,20 @@ void PatternDetector::findPatternMatch(const cv::Mat queryDescriptors,
 
 bool PatternDetector::findPattern(const cv::Mat& image,
 		PatternTrackingInfo& info) {
+
 	// Convert input image to gray
 	getGray(image, m_grayImg);
 
 	// Extract feature points from input gray image
-	extractFeatures(m_grayImg, m_queryKeypoints, m_queryDescriptors);
+	bool featuresFound = extractFeatures(m_grayImg, m_queryKeypoints, m_queryDescriptors);
+	if (!featuresFound) {
+		return false;
+	}
 
 	// Match query against each pattern in parallel
 	m_matches = std::vector<std::vector<cv::DMatch> >(m_patterns.size());
 	m_matches_homographyFound = std::vector<bool>(m_patterns.size());
 	m_matches_homography = std::vector<cv::Mat>(m_patterns.size());
-
-	//parallel_for(tbb::blocked_range<size_t>(0,m_patterns.size()), PatternMatch(m_queryDescriptors, *this));
 
 	cv::parallel_for_(cv::Range(0, m_patterns.size()),
 			PatternMatch(m_queryDescriptors, *this));
